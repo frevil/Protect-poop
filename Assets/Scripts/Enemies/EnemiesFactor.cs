@@ -18,6 +18,7 @@ namespace Enemies
                 attackTimer = 0,
                 faction = 1,
                 targetIndex = -1,
+                killExp = 1
             };
         }
     }

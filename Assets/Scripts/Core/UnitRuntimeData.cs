@@ -1,7 +1,9 @@
+using System;
 using UnityEngine;
 
 namespace Core
 {
+    [Serializable]
     public struct UnitRuntimeData
     {
         public int id;

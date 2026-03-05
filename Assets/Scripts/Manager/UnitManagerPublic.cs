@@ -9,5 +9,12 @@ namespace Manager
         {
             return _instance.units;
         }
+        
+        public static int SpawnUnit(UnitRuntimeData data)
+        {
+            data.id = _instance.units.Count;
+            _instance.units.Add(data);
+            return data.id;
+        }
     }
 }

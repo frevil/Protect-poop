@@ -1,7 +1,8 @@
 using Manager;
+using Towers;
 using UnityEditor;
 
-namespace Scripts.test
+namespace test
 {
     public class TempTest
     {
@@ -9,6 +10,12 @@ namespace Scripts.test
         public static void GenerateAWave()
         {
             WaveSystem.GenerateMosquito(50);
+        }
+        
+        [MenuItem("测试/创建呱呱")]
+        public static void GenerateFrog()
+        {
+            Frog.Create();
         }
     }
 }

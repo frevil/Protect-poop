@@ -1,12 +1,11 @@
 {
-  "name": "test",
+  "name": "Towers",
   "rootNamespace": "",
   "references": [
-  "GUID:b4ab1d2543ee46d7a70551a31c3843df",
-  "GUID:273e1d6f2b0c4e129aa8f2c521219887"],
-  "includePlatforms": [
-    "Editor"
+    "Core",
+    "Manager"
   ],
+  "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,
   "overrideReferences": false,
