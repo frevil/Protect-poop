@@ -1,0 +1,17 @@
+{
+  "name": "Render",
+  "rootNamespace": "",
+  "references": [
+    "Core",
+    "Manager"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
