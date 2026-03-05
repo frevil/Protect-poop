@@ -8,6 +8,7 @@ namespace Core
     {
         public int id;
         public string name;
+        public string unitType;
 
         public Vector3 position;
         public float moveSpeed;
@@ -37,6 +38,7 @@ namespace Core
         {
             id = 0,
             name = "便便",
+            unitType = "PlayerBase",
             hp = 100,
             attack = 0,
             attackRange = 0,

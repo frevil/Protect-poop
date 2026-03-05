@@ -9,6 +9,7 @@ namespace Enemies
             return new UnitRuntimeData()
             {
                 alive = true,
+                unitType = "Mosquito",
                 moveSpeed = 1f,
                 maxHp = 3,
                 hp = 3,
