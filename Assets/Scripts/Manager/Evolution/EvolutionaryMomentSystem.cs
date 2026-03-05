@@ -11,6 +11,10 @@ namespace Manager.Evolution
         private static readonly List<EvolutionaryMomentOption> AllOptions = new();
         private static readonly List<EvolutionaryMomentOption> CurrentOptions = new();
         private static bool _loaded;
+        public static bool IsInEvolutionaryMoment { get; private set; }
+
+        public static event Action<IReadOnlyList<EvolutionaryMomentOption>> EvolutionaryMomentStarted;
+        public static event Action EvolutionaryMomentEnded;
 
         public static IReadOnlyList<EvolutionaryMomentOption> GetCurrentOptions()
         {
@@ -19,6 +23,12 @@ namespace Manager.Evolution
 
         public static void EnterEvolutionaryMoment(int optionCount = 3)
         {
+            if (IsInEvolutionaryMoment)
+            {
+                Debug.LogWarning("[EvolutionaryMoment] 当前已经处于进化时刻中，忽略重复触发。");
+                return;
+            }
+
             EnsureLoaded();
             CurrentOptions.Clear();
 
@@ -44,6 +54,10 @@ namespace Manager.Evolution
                 var option = CurrentOptions[i];
                 Debug.Log($"[{i + 1}] {option.title} - {option.description}");
             }
+
+            IsInEvolutionaryMoment = true;
+            Time.timeScale = 0f;
+            EvolutionaryMomentStarted?.Invoke(CurrentOptions);
         }
 
         public static bool ChooseOption(int optionIndex)
@@ -59,7 +73,17 @@ namespace Manager.Evolution
             Debug.Log($"[EvolutionaryMoment] 已选择：{chosenOption.title}");
 
             CurrentOptions.Clear();
+            ExitEvolutionaryMoment();
             return true;
+        }
+
+        public static void ExitEvolutionaryMoment()
+        {
+            if (!IsInEvolutionaryMoment) return;
+
+            IsInEvolutionaryMoment = false;
+            Time.timeScale = 1f;
+            EvolutionaryMomentEnded?.Invoke();
         }
 
         private static void EnsureLoaded()
