@@ -1,0 +1,44 @@
+{
+  "options": [
+    {
+      "id": "rapid_tongue",
+      "title": "舌头热身",
+      "description": "呱呱攻击间隔 -0.15 秒",
+      "attackIntervalDelta": -0.15,
+      "attackRangeDelta": 0,
+      "attackDelta": 0
+    },
+    {
+      "id": "long_tongue",
+      "title": "长舌突刺",
+      "description": "呱呱攻击范围 +2",
+      "attackIntervalDelta": 0,
+      "attackRangeDelta": 2,
+      "attackDelta": 0
+    },
+    {
+      "id": "heavy_slap",
+      "title": "重击拍打",
+      "description": "呱呱攻击力 +3",
+      "attackIntervalDelta": 0,
+      "attackRangeDelta": 0,
+      "attackDelta": 3
+    },
+    {
+      "id": "combat_focus",
+      "title": "战斗专注",
+      "description": "呱呱攻击间隔 -0.1 秒，攻击力 +1",
+      "attackIntervalDelta": -0.1,
+      "attackRangeDelta": 0,
+      "attackDelta": 1
+    },
+    {
+      "id": "hunting_instinct",
+      "title": "狩猎本能",
+      "description": "呱呱攻击范围 +1.5，攻击力 +1",
+      "attackIntervalDelta": 0,
+      "attackRangeDelta": 1.5,
+      "attackDelta": 1
+    }
+  ]
+}

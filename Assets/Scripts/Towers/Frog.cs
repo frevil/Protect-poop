@@ -10,6 +10,7 @@ namespace Towers
         private static readonly UnitRuntimeData DefaultData = new()
         {
             name = "青蛙",
+            unitType = "Frog",
             hp = 100,
             attack = 10,
             attackRange = 25f,
