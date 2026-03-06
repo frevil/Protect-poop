@@ -21,9 +21,14 @@ namespace Render
 
         private void Update()
         {
+            if (!UnitManager.IsGameRunning())
+            {
+                HideAllUnits();
+                return;
+            }
+
             foreach (var unitRuntimeData in UnitManager.GetUnits())
             {
-                
                 if (_unitsGameObjects.ContainsKey(unitRuntimeData.id))
                 {
                     _unitsGameObjects.TryGetValue(unitRuntimeData.id, out var unitGo);
@@ -40,7 +45,17 @@ namespace Render
 
                     _unitsGameObjects[unitRuntimeData.id] = go;
                 }
+
                 _unitsGameObjects[unitRuntimeData.id].SetActive(unitRuntimeData.alive);
+            }
+        }
+
+        private void HideAllUnits()
+        {
+            foreach (var unitGameObject in _unitsGameObjects.Values)
+            {
+                if (unitGameObject == null) continue;
+                unitGameObject.SetActive(false);
             }
         }
 

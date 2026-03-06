@@ -15,6 +15,27 @@ namespace Manager
             managerObj.AddComponent<UnitManager>();
         }
 
+        public static bool IsGameRunning()
+        {
+            EnsureInstance();
+            return _isGameRunning;
+        }
+
+        public static void StartNewGame()
+        {
+            EnsureInstance();
+            _instance.units.Clear();
+            SpawnUnit(UnitRuntimeData.Player);
+            _isGameRunning = true;
+        }
+
+        public static void ShutdownGame()
+        {
+            EnsureInstance();
+            _isGameRunning = false;
+            _instance.units.Clear();
+        }
+
         public static List<UnitRuntimeData> GetUnits()
         {
             EnsureInstance();
