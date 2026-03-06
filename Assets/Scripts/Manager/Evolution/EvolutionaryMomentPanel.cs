@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Manager.Evolution
@@ -19,9 +20,24 @@ namespace Manager.Evolution
             var existing = FindObjectOfType<EvolutionaryMomentPanel>();
             if (existing != null) return;
 
+            EnsureEventSystem();
+
             var panelObj = new GameObject("EvolutionaryMomentPanel");
             DontDestroyOnLoad(panelObj);
             panelObj.AddComponent<EvolutionaryMomentPanel>();
+        }
+
+        private static void EnsureEventSystem()
+        {
+            if (FindObjectOfType<EventSystem>() != null)
+            {
+                return;
+            }
+
+            var eventSystemObj = new GameObject("EventSystem");
+            DontDestroyOnLoad(eventSystemObj);
+            eventSystemObj.AddComponent<EventSystem>();
+            eventSystemObj.AddComponent<StandaloneInputModule>();
         }
 
         private void Awake()
