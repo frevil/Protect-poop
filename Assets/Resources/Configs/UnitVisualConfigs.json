@@ -1,0 +1,25 @@
+{
+  "visuals": [
+    {
+      "unitType": "Frog",
+      "textureResourcePath": "UnitVisuals/frog",
+      "scale": 1.3,
+      "zOffset": 0,
+      "sortingOrder": 10
+    },
+    {
+      "unitType": "Spider",
+      "textureResourcePath": "UnitVisuals/spider",
+      "scale": 1.2,
+      "zOffset": 0,
+      "sortingOrder": 10
+    },
+    {
+      "unitType": "Mosquito",
+      "textureResourcePath": "UnitVisuals/mosquito",
+      "scale": 1,
+      "zOffset": 0,
+      "sortingOrder": 10
+    }
+  ]
+}
