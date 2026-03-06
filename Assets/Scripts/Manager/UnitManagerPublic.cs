@@ -6,13 +6,24 @@ namespace Manager
 {
     public partial class UnitManager
     {
+        internal static void EnsureInstance()
+        {
+            if (_instance != null) return;
+
+            var managerObj = new UnityEngine.GameObject("UnitManager");
+            UnityEngine.Object.DontDestroyOnLoad(managerObj);
+            managerObj.AddComponent<UnitManager>();
+        }
+
         public static List<UnitRuntimeData> GetUnits()
         {
+            EnsureInstance();
             return _instance.units;
         }
 
         public static int SpawnUnit(UnitRuntimeData data)
         {
+            EnsureInstance();
             data.id = _instance.units.Count;
             _instance.units.Add(data);
             return data.id;
@@ -20,6 +31,7 @@ namespace Manager
 
         public static void ApplyEvolutionaryMomentOption(EvolutionaryMomentOption option)
         {
+            EnsureInstance();
             for (var i = 0; i < _instance.units.Count; i++)
             {
                 var unit = _instance.units[i];

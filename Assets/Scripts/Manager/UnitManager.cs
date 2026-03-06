@@ -9,9 +9,24 @@ namespace Manager
         public List<UnitRuntimeData> units = new();
         private static UnitManager _instance;
 
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void Bootstrap()
+        {
+            EnsureInstance();
+        }
+
         private void Awake()
         {
+            if (_instance != null && _instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
             _instance = this;
+            DontDestroyOnLoad(gameObject);
+
+            if (units.Count > 0) return;
             SpawnUnit(UnitRuntimeData.Player);
         }
 
