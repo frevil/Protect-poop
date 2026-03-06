@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Core;
+using Scripts.Core;
 using UnityEngine;
 
 namespace Manager
@@ -38,6 +39,38 @@ namespace Manager
             MovementSystem.MoveUnits(units, deltaTime);
             AttackSystem.HandleAttack(units, deltaTime);
             DeathSystem.HandleDeath(units);
+            EvaluateGameState();
+        }
+
+        private void EvaluateGameState()
+        {
+            var playerBaseAlive = false;
+            var enemyAlive = false;
+
+            for (var i = 0; i < units.Count; i++)
+            {
+                if (!units[i].alive) continue;
+
+                if (units[i].unitType == "PlayerBase")
+                {
+                    playerBaseAlive = true;
+                }
+                else if (units[i].faction == Faction.Enemy)
+                {
+                    enemyAlive = true;
+                }
+            }
+
+            if (!playerBaseAlive)
+            {
+                EndGame(false);
+                return;
+            }
+
+            if (!enemyAlive)
+            {
+                EndGame(true);
+            }
         }
     }
 }
