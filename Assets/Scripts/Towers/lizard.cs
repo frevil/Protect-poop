@@ -18,7 +18,7 @@ namespace Towers
             attackTimer = 0,
             moveSpeed = 3f,
             alive = true,
-            position = new Vector3(-11,-4,0),
+            position = new Vector3(-2f,-1f,0),
             faction = Faction.Player,
             targetIndex = -1
         };

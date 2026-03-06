@@ -48,7 +48,7 @@ namespace Core
             faction = 0,
             targetIndex = -1,
             alive = true,
-            position = new Vector3(-10,-5,0)
+            position = new Vector3(-7.5f,-3f,0)
         };
 
         public bool IsEmpty()
