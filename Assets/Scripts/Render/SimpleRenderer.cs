@@ -8,6 +8,17 @@ namespace Render
     {
         private readonly Dictionary<int, GameObject> _unitsGameObjects = new();
 
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void Bootstrap()
+        {
+            var existing = FindObjectOfType<SimpleRenderer>();
+            if (existing != null) return;
+
+            var rendererObject = new GameObject("SimpleRenderer");
+            DontDestroyOnLoad(rendererObject);
+            rendererObject.AddComponent<SimpleRenderer>();
+        }
+
         private void Update()
         {
             foreach (var unitRuntimeData in UnitManager.GetUnits())
