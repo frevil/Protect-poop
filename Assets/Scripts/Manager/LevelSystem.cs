@@ -9,6 +9,14 @@ namespace Manager
         private static int _expNeed = 1;
         private static int _level = 1;
 
+
+        public static void Reset()
+        {
+            _exp = 0;
+            _expNeed = 1;
+            _level = 1;
+        }
+
         public static void GotExp(int value)
         {
             _exp += value;
