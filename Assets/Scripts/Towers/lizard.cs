@@ -5,20 +5,20 @@ using UnityEngine;
 
 namespace Towers
 {
-    public class Frog
+    public class lizard
     {
         private static readonly UnitRuntimeData DefaultData = new()
         {
-            name = "青蛙",
-            unitType = "Frog",
-            hp = 100,
-            attack = 10,
-            attackRange = 5f,
-            attackInterval = 1f,
+            name = "独立游蜴",
+            unitType = "lizard",
+            hp = 85,
+            attack = 15,
+            attackRange = 3f,
+            attackInterval = 2f,
             attackTimer = 0,
-            moveSpeed = 0f,
+            moveSpeed = 3f,
             alive = true,
-            position = new Vector3(-12,-7,0),
+            position = new Vector3(-11,-4,0),
             faction = Faction.Player,
             targetIndex = -1
         };
