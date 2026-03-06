@@ -8,6 +8,7 @@ namespace Manager
     {
         public List<UnitRuntimeData> units = new();
         private static UnitManager _instance;
+        private static bool _isGameRunning;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Bootstrap()
@@ -25,13 +26,12 @@ namespace Manager
 
             _instance = this;
             DontDestroyOnLoad(gameObject);
-
-            if (units.Count > 0) return;
-            SpawnUnit(UnitRuntimeData.Player);
         }
 
         void Update()
         {
+            if (!_isGameRunning) return;
+
             float deltaTime = Time.deltaTime;
 
             TargetingSystem.UpdateTargets(units);
