@@ -7,6 +7,7 @@ namespace Render
     public class SimpleRenderer : MonoBehaviour
     {
         private readonly Dictionary<int, GameObject> _unitsGameObjects = new();
+        private readonly Dictionary<int, string> _renderedUnitTypeById = new();
         private readonly Dictionary<string, UnitVisualConfig> _visualConfigByType = new();
         private readonly Dictionary<string, Texture2D> _textureCacheByPath = new();
 
@@ -39,13 +40,29 @@ namespace Render
                 if (_unitsGameObjects.ContainsKey(unitRuntimeData.id))
                 {
                     _unitsGameObjects.TryGetValue(unitRuntimeData.id, out var unitGo);
-                    if (unitGo == null) continue;
+                    if (unitGo == null)
+                    {
+                        unitGo = CreateUnitGameObject(unitRuntimeData);
+                        _unitsGameObjects[unitRuntimeData.id] = unitGo;
+                        _renderedUnitTypeById[unitRuntimeData.id] = unitRuntimeData.unitType;
+                    }
+
+                    if (_renderedUnitTypeById.TryGetValue(unitRuntimeData.id, out var renderedUnitType) &&
+                        renderedUnitType != unitRuntimeData.unitType)
+                    {
+                        Destroy(unitGo);
+                        unitGo = CreateUnitGameObject(unitRuntimeData);
+                        _unitsGameObjects[unitRuntimeData.id] = unitGo;
+                        _renderedUnitTypeById[unitRuntimeData.id] = unitRuntimeData.unitType;
+                    }
+
                     UpdatePosition(unitGo, unitRuntimeData);
                 }
                 else
                 {
                     var go = CreateUnitGameObject(unitRuntimeData);
                     _unitsGameObjects[unitRuntimeData.id] = go;
+                    _renderedUnitTypeById[unitRuntimeData.id] = unitRuntimeData.unitType;
                 }
 
                 _unitsGameObjects[unitRuntimeData.id].SetActive(unitRuntimeData.alive);
