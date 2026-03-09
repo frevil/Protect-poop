@@ -20,6 +20,13 @@
       "scale": 1,
       "zOffset": 0,
       "sortingOrder": 10
+    },
+    {
+      "unitType": "PlayerBase",
+      "textureResourcePath": "UnitVisuals/shit",
+      "scale": 1.2,
+      "zOffset": 0,
+      "sortingOrder": 10
     }
   ]
 }
