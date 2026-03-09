@@ -29,7 +29,7 @@ namespace Manager.AttackBehaviors
                 damage = spider.attack,
                 position = spider.position,
                 targetLastPosition = target.position,
-                visual = context.CreateProjectileVisual("Art/Images/net_flying", 0.28f),
+                visual = CreateProjectileVisual(context.EffectRoot, "Art/Images/net_flying", 0.28f),
                 phase = SpiderProjectilePhase.Flying
             });
 
@@ -103,6 +103,32 @@ namespace Manager.AttackBehaviors
 
                 SpiderProjectiles.RemoveAt(i);
             }
+        }
+
+
+        private static GameObject CreateProjectileVisual(Transform effectRoot, string texturePath, float size)
+        {
+            var go = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            go.name = "SpiderWebProjectile";
+            go.transform.SetParent(effectRoot, false);
+            go.transform.localScale = Vector3.one * size;
+
+            var collider = go.GetComponent<Collider>();
+            if (collider != null)
+            {
+                Object.Destroy(collider);
+            }
+
+            var meshRenderer = go.GetComponent<MeshRenderer>();
+            meshRenderer.material = new Material(Shader.Find("Unlit/Transparent"));
+            var texture = Resources.Load<Texture2D>(texturePath);
+            if (texture != null)
+            {
+                meshRenderer.material.mainTexture = texture;
+            }
+
+            meshRenderer.sortingOrder = 12;
+            return go;
         }
 
         private static void ExplodeProjectile(AttackContext context, ref SpiderWebProjectileState projectile)

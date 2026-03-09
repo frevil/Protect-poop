@@ -17,8 +17,6 @@ namespace Manager
                 units,
                 dt,
                 _effectRoot,
-                CreateProjectileVisual,
-                CreateTongueLineRenderer,
                 (targetIndex, damage, attackerName) => ApplyDamage(units, targetIndex, damage, attackerName));
 
             for (int i = 0; i < units.Count; i++)
@@ -67,49 +65,6 @@ namespace Manager
             }
 
             _effectRoot = go.transform;
-        }
-
-        private static LineRenderer CreateTongueLineRenderer(int frogId)
-        {
-            var go = new GameObject($"FrogTongue_{frogId}");
-            go.transform.SetParent(_effectRoot, false);
-
-            var lineRenderer = go.AddComponent<LineRenderer>();
-            lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
-            lineRenderer.startWidth = 0.12f;
-            lineRenderer.endWidth = 0.08f;
-            lineRenderer.positionCount = 2;
-            lineRenderer.useWorldSpace = true;
-            lineRenderer.startColor = new Color(0.95f, 0.55f, 0.65f);
-            lineRenderer.endColor = new Color(0.95f, 0.45f, 0.6f);
-            lineRenderer.sortingOrder = 11;
-
-            return lineRenderer;
-        }
-
-        private static GameObject CreateProjectileVisual(string texturePath, float size)
-        {
-            var go = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            go.name = "SpiderWebProjectile";
-            go.transform.SetParent(_effectRoot, false);
-            go.transform.localScale = Vector3.one * size;
-
-            var collider = go.GetComponent<Collider>();
-            if (collider != null)
-            {
-                Object.Destroy(collider);
-            }
-
-            var meshRenderer = go.GetComponent<MeshRenderer>();
-            meshRenderer.material = new Material(Shader.Find("Unlit/Transparent"));
-            var texture = Resources.Load<Texture2D>(texturePath);
-            if (texture != null)
-            {
-                meshRenderer.material.mainTexture = texture;
-            }
-
-            meshRenderer.sortingOrder = 12;
-            return go;
         }
 
         private static void ApplyDamage(List<UnitRuntimeData> units, int targetIndex, float damage, string attackerName)
