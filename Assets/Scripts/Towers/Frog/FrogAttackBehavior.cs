@@ -27,7 +27,7 @@ namespace Manager.AttackBehaviors
                     targetIndex = frog.targetIndex,
                     tongueTip = frog.position,
                     phase = FrogTonguePhase.Extending,
-                    lineRenderer = context.CreateTongue(frog.id)
+                    lineRenderer = CreateTongueLineRenderer(context.EffectRoot, frog.id)
                 };
 
                 FrogTongueStates[frog.id] = state;
@@ -106,6 +106,25 @@ namespace Manager.AttackBehaviors
             {
                 FinishFrogTongue(deadFrogId);
             }
+        }
+
+
+        private static LineRenderer CreateTongueLineRenderer(Transform effectRoot, int frogId)
+        {
+            var go = new GameObject($"FrogTongue_{frogId}");
+            go.transform.SetParent(effectRoot, false);
+
+            var lineRenderer = go.AddComponent<LineRenderer>();
+            lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+            lineRenderer.startWidth = 0.12f;
+            lineRenderer.endWidth = 0.08f;
+            lineRenderer.positionCount = 2;
+            lineRenderer.useWorldSpace = true;
+            lineRenderer.startColor = new Color(0.95f, 0.55f, 0.65f);
+            lineRenderer.endColor = new Color(0.95f, 0.45f, 0.6f);
+            lineRenderer.sortingOrder = 11;
+
+            return lineRenderer;
         }
 
         private static void FinishFrogTongue(int frogId)
