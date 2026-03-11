@@ -40,6 +40,8 @@ namespace Manager
             _isGameRunning = false;
             _instance.units.Clear();
             EvolutionaryMomentSystem.ExitEvolutionaryMoment();
+            EncounterDirector.Reset();
+            _elapsedBattleTime = 0f;
             LevelSystem.Reset();
         }
 
@@ -49,7 +51,18 @@ namespace Manager
 
             SpawnUnit(UnitRuntimeData.Player);
             SpawnUnit(CreateInitialCompanion(companionType));
-            WaveSystem.GenerateMosquito();
+            var hasConfiguredLevel = WaveSystem.StartLevel();
+            if (!hasConfiguredLevel)
+            {
+                Debug.LogWarning("未加载到关卡配置，使用默认生成30只蚊子作为兜底。");
+                for (var i = 0; i < 30; i++)
+                {
+                    var mosquito = Enemies.EnemiesFactor.CreateByTypeId("Mosquito");
+                    mosquito.name = $"蚊子_{i}";
+                    mosquito.position = new Vector3(10f, 5f, 0f) + new Vector3(UnityEngine.Random.Range(0f, 3f), UnityEngine.Random.Range(0f, 3f), 0f);
+                    SpawnUnit(mosquito);
+                }
+            }
 
             _isGameRunning = true;
         }
@@ -66,6 +79,8 @@ namespace Manager
             _isGameRunning = false;
             _instance.units.Clear();
             EvolutionaryMomentSystem.ExitEvolutionaryMoment();
+            EncounterDirector.Reset();
+            _elapsedBattleTime = 0f;
         }
 
         public static List<UnitRuntimeData> GetUnits()
@@ -164,6 +179,8 @@ namespace Manager
 
             _isGameRunning = false;
             EvolutionaryMomentSystem.ExitEvolutionaryMoment();
+            EncounterDirector.Reset();
+            _elapsedBattleTime = 0f;
 
             var message = isVictory
                 ? "伙伴们成功保护了便便"

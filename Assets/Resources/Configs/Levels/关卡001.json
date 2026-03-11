@@ -1,0 +1,21 @@
+{
+  "levelId": "关卡001",
+  "spawns": [
+    {
+      "time": 0,
+      "position": { "x": 10, "y": 5, "z": 0 },
+      "positionRandomRange": { "x": 2, "y": 2, "z": 0 },
+      "enemyTypeId": "Mosquito",
+      "count": 10,
+      "interval": 1
+    },
+    {
+      "time": 6,
+      "position": { "x": 12, "y": -4, "z": 0 },
+      "positionRandomRange": { "x": 1.5, "y": 1.5, "z": 0 },
+      "enemyTypeId": "Fly",
+      "count": 5,
+      "interval": 2
+    }
+  ]
+}
