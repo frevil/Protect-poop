@@ -10,6 +10,7 @@ namespace Manager
         public List<UnitRuntimeData> units = new();
         private static UnitManager _instance;
         private static bool _isGameRunning;
+        private static float _elapsedBattleTime;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Bootstrap()
@@ -34,7 +35,9 @@ namespace Manager
             if (!_isGameRunning) return;
 
             float deltaTime = Time.deltaTime;
+            _elapsedBattleTime += deltaTime;
 
+            EncounterDirector.Tick(_elapsedBattleTime);
             TargetingSystem.UpdateTargets(units);
             MovementSystem.MoveUnits(units, deltaTime);
             AttackSystem.HandleAttack(units, deltaTime);
