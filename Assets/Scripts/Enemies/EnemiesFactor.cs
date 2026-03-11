@@ -39,7 +39,7 @@ namespace Enemies
             return new UnitRuntimeData
             {
                 alive = true,
-                unitType = "fly",
+                unitType = "Fly",
                 moveSpeed = 1f,
                 maxHp = 10,
                 hp = 10,
