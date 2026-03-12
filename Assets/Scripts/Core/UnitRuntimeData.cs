@@ -20,6 +20,7 @@ namespace Core
         public float attackRange;
 
         public float attackInterval;
+        public float attackIntervalScale;
         public float attackTimer;
 
         public int faction;        // 0 = Player, 1 = Enemy
@@ -43,6 +44,7 @@ namespace Core
             attack = 0,
             attackRange = 0,
             attackInterval = 1,
+            attackIntervalScale = 1,
             attackTimer = 0,
             maxHp = 100,
             faction = 0,

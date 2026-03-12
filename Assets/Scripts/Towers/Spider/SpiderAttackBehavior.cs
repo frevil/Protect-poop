@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Core;
+using Manager.Evolution;
 using UnityEngine;
 
 namespace Manager.AttackBehaviors
@@ -20,7 +21,7 @@ namespace Manager.AttackBehaviors
             if (!target.alive) return;
 
             var inRange = Vector3.Distance(target.position, spider.position) <= spider.attackRange;
-            if (!inRange || spider.attackTimer < spider.attackInterval) return;
+            if (!inRange || spider.attackTimer < EvolutionaryMomentSystem.GetEffectiveAttackInterval(spider)) return;
 
             SpiderProjectiles.Add(new SpiderWebProjectileState
             {

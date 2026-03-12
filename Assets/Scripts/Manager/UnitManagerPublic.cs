@@ -39,7 +39,7 @@ namespace Manager
             Time.timeScale = 1f;
             _isGameRunning = false;
             _instance.units.Clear();
-            EvolutionaryMomentSystem.ExitEvolutionaryMoment();
+            EvolutionaryMomentSystem.ResetForNewRun();
             EncounterDirector.Reset();
             _elapsedBattleTime = 0f;
             LevelSystem.Reset();
@@ -93,28 +93,22 @@ namespace Manager
         {
             EnsureInstance();
             data.id = _instance.units.Count;
+            data.attackIntervalScale = 1f;
+            EvolutionaryMomentSystem.OnUnitSpawned(ref data);
             _instance.units.Add(data);
+
+            if (data.faction == Faction.Player && data.unitType != "PlayerBase")
+            {
+                EvolutionaryMomentSystem.RegisterCompanion(data.unitType);
+            }
+
             return data.id;
         }
 
         public static void ApplyEvolutionaryMomentOption(EvolutionaryMomentOption option)
         {
             EnsureInstance();
-            for (var i = 0; i < _instance.units.Count; i++)
-            {
-                var unit = _instance.units[i];
-                if (!unit.alive) continue;
-                if (unit.faction != Faction.Player) continue;
-                if (unit.unitType == "PlayerBase") continue;
-
-                unit.attackInterval += option.attackIntervalDelta;
-                unit.attackInterval = unit.attackInterval < 0.1f ? 0.1f : unit.attackInterval;
-
-                unit.attackRange += option.attackRangeDelta;
-                unit.attack += option.attackDelta;
-
-                _instance.units[i] = unit;
-            }
+            EvolutionaryMomentSystem.ApplyOptionToExistingUnits(option, _instance.units);
         }
 
         private static UnitRuntimeData CreateInitialCompanion(InitialCompanionType companionType)
@@ -130,6 +124,7 @@ namespace Manager
                     attack = 10,
                     attackRange = 5f,
                     attackInterval = 1f,
+                    attackIntervalScale = 1f,
                     attackTimer = 0,
                     moveSpeed = 0f,
                     alive = true,
@@ -146,6 +141,7 @@ namespace Manager
                     attack = 5,
                     attackRange = 25f,
                     attackInterval = 3f,
+                    attackIntervalScale = 1f,
                     attackTimer = 0,
                     moveSpeed = 0f,
                     alive = true,
@@ -162,6 +158,7 @@ namespace Manager
                     attack = 15,
                     attackRange = 3f,
                     attackInterval = 2f,
+                    attackIntervalScale = 1f,
                     attackTimer = 0,
                     moveSpeed = 3f,
                     alive = true,
