@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Core;
 using Manager.AttackBehaviors;
+using Manager.Evolution;
 using UnityEngine;
 
 namespace Manager
@@ -12,6 +13,8 @@ namespace Manager
         public static void HandleAttack(List<UnitRuntimeData> units, float dt)
         {
             EnsureEffectRoot();
+
+            EvolutionaryMomentSystem.TickSkills(units, dt);
 
             var context = new AttackContext(
                 units,
@@ -37,7 +40,7 @@ namespace Manager
                 // 默认攻击逻辑保留在主系统里，特殊伙伴攻击下沉到行为类，后续新增伙伴只需注册行为即可。
                 var target = units[unit.targetIndex];
                 if (Vector3.Distance(target.position, unit.position) < unit.attackRange &&
-                    unit.attackTimer >= unit.attackInterval)
+                    unit.attackTimer >= EvolutionaryMomentSystem.GetEffectiveAttackInterval(unit))
                 {
                     ApplyDamage(units, unit.targetIndex, unit.attack, unit.name);
                     unit.attackTimer = 0;

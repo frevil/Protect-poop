@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Core;
+using Manager.Evolution;
 using UnityEngine;
 
 namespace Manager.AttackBehaviors
@@ -20,7 +21,7 @@ namespace Manager.AttackBehaviors
             {
                 var target = context.Units[frog.targetIndex];
                 var inRange = Vector3.Distance(target.position, frog.position) <= frog.attackRange;
-                if (frog.attackTimer < frog.attackInterval || !inRange || !target.alive) return;
+                if (frog.attackTimer < EvolutionaryMomentSystem.GetEffectiveAttackInterval(frog) || !inRange || !target.alive) return;
 
                 state = new FrogTongueState
                 {
