@@ -1,0 +1,70 @@
+{
+  "levelId": "D06_S03",
+  "difficulty": 6,
+  "spawns": [
+    {
+      "time": 0,
+      "position": {
+        "x": 11.2,
+        "y": 1,
+        "z": 0
+      },
+      "positionRandomRange": {
+        "x": 2.0,
+        "y": 2.0,
+        "z": 0
+      },
+      "enemyTypeId": "Mosquito",
+      "count": 21,
+      "interval": 0.72
+    },
+    {
+      "time": 6.1,
+      "position": {
+        "x": 12,
+        "y": 1.5,
+        "z": 0
+      },
+      "positionRandomRange": {
+        "x": 1.8,
+        "y": 1.6,
+        "z": 0
+      },
+      "enemyTypeId": "Fly",
+      "count": 9,
+      "interval": 1.4800000000000002
+    },
+    {
+      "time": 11,
+      "position": {
+        "x": 11.5,
+        "y": -0.5,
+        "z": 0
+      },
+      "positionRandomRange": {
+        "x": 2.2,
+        "y": 2.0,
+        "z": 0
+      },
+      "enemyTypeId": "Mosquito",
+      "count": 10,
+      "interval": 0.6
+    },
+    {
+      "time": 14.4,
+      "position": {
+        "x": 13,
+        "y": -2,
+        "z": 0
+      },
+      "positionRandomRange": {
+        "x": 2.0,
+        "y": 2.0,
+        "z": 0
+      },
+      "enemyTypeId": "Fly",
+      "count": 8,
+      "interval": 1.12
+    }
+  ]
+}

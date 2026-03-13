@@ -72,7 +72,12 @@ namespace Manager
 
             if (!enemyAlive)
             {
-                EndGame(true);
+                if (!WaveSystem.AreAllSpawnEventsFinished())
+                {
+                    return;
+                }
+
+                HandleStageCleared();
             }
         }
     }
