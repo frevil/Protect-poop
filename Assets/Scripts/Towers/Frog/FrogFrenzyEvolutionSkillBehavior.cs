@@ -2,7 +2,7 @@ using Core;
 using Manager.Evolution;
 using Manager.Evolution.Skills;
 
-namespace Towers.Frog
+namespace Towers.FrogSkills
 {
     public sealed class FrogFrenzyEvolutionSkillBehavior : IEvolutionSkillBehavior
     {
