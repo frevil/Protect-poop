@@ -37,7 +37,7 @@ namespace Manager.AttackBehaviors
 
             if (!context.IsValidTargetIndex(state.targetIndex))
             {
-                FinishFrogTongue(frog.id);
+                FinishFrogTongue(frog.id, context.Units);
                 return;
             }
 
@@ -53,6 +53,10 @@ namespace Manager.AttackBehaviors
             {
                 state.phase = FrogTonguePhase.Retracting;
                 state.hasCapturedTarget = true;
+
+                targetUnit.controlState |= UnitControlState.Suppressed;
+                targetUnit.targetIndex = -1;
+                context.Units[state.targetIndex] = targetUnit;
             }
 
             if (state.hasCapturedTarget && targetUnit.alive)
@@ -70,7 +74,7 @@ namespace Manager.AttackBehaviors
                     context.ApplyDamage(state.targetIndex, frog.attack, frog.name);
                 }
 
-                FinishFrogTongue(frog.id);
+                FinishFrogTongue(frog.id, context.Units);
                 return;
             }
 
@@ -105,7 +109,7 @@ namespace Manager.AttackBehaviors
 
             foreach (var deadFrogId in deadFrogIds)
             {
-                FinishFrogTongue(deadFrogId);
+                FinishFrogTongue(deadFrogId, context.Units);
             }
         }
 
@@ -128,9 +132,16 @@ namespace Manager.AttackBehaviors
             return lineRenderer;
         }
 
-        private static void FinishFrogTongue(int frogId)
+        private static void FinishFrogTongue(int frogId, List<UnitRuntimeData> units)
         {
             if (!FrogTongueStates.TryGetValue(frogId, out var state)) return;
+
+            if (state.hasCapturedTarget && state.targetIndex >= 0 && state.targetIndex < units.Count)
+            {
+                var capturedTarget = units[state.targetIndex];
+                capturedTarget.controlState &= ~UnitControlState.Suppressed;
+                units[state.targetIndex] = capturedTarget;
+            }
 
             if (state.lineRenderer != null)
             {

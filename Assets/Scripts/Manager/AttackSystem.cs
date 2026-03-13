@@ -26,6 +26,13 @@ namespace Manager
             {
                 var unit = units[i];
                 if (!unit.alive) continue;
+                if (!unit.CanAttack)
+                {
+                    unit.targetIndex = -1;
+                    units[i] = unit;
+                    continue;
+                }
+
                 if (unit.targetIndex < 0 || unit.targetIndex >= units.Count) continue;
 
                 unit.attackTimer += dt;

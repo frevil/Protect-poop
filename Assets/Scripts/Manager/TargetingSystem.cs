@@ -13,6 +13,13 @@ namespace Manager
 
                 if (!unit.alive) continue;
 
+                if (!unit.CanTarget)
+                {
+                    unit.targetIndex = -1;
+                    units[i] = unit;
+                    continue;
+                }
+
                 if (unit.targetIndex >= 0 && unit.targetIndex < units.Count && units[unit.targetIndex].alive)
                 {
                     continue;

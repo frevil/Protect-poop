@@ -31,6 +31,13 @@ namespace Core
 
         public bool alive;
 
+        public UnitControlState controlState;
+
+        public bool IsSuppressed => (controlState & UnitControlState.Suppressed) != 0;
+        public bool CanMove => alive && !IsSuppressed && (controlState & UnitControlState.CannotMove) == 0;
+        public bool CanTarget => alive && !IsSuppressed;
+        public bool CanAttack => alive && !IsSuppressed;
+
         public static UnitRuntimeData Empty = new()
         {
             id = -1
@@ -50,6 +57,7 @@ namespace Core
             faction = 0,
             targetIndex = -1,
             alive = true,
+            controlState = UnitControlState.Normal,
             position = new Vector3(-7.5f,-3f,0)
         };
 
