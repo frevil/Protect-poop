@@ -12,6 +12,7 @@ namespace Manager
             {
                 var unit = units[i];
                 if (!unit.alive) continue;
+                if (!unit.CanMove) continue;
 
                 if (unit.faction != Faction.Enemy) continue;
                 if (unit.targetIndex < 0 || unit.targetIndex >= units.Count) continue;
