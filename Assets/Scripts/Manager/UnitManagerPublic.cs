@@ -14,9 +14,58 @@ namespace Manager
         Lizard
     }
 
+    public readonly struct StageProgressInfo
+    {
+        public readonly int Tier;
+        public readonly int StageInTier;
+        public readonly int TotalStageInTier;
+        public readonly int Nutrition;
+
+        public StageProgressInfo(int tier, int stageInTier, int totalStageInTier, int nutrition)
+        {
+            Tier = tier;
+            StageInTier = stageInTier;
+            TotalStageInTier = totalStageInTier;
+            Nutrition = nutrition;
+        }
+    }
+
+    public readonly struct StageSettlementInfo
+    {
+        public readonly int Tier;
+        public readonly int ClearedStageInTier;
+        public readonly int TotalStageInTier;
+        public readonly int Nutrition;
+        public readonly bool CanPurchaseCompanion;
+
+        public StageSettlementInfo(int tier, int clearedStageInTier, int totalStageInTier, int nutrition, bool canPurchaseCompanion)
+        {
+            Tier = tier;
+            ClearedStageInTier = clearedStageInTier;
+            TotalStageInTier = totalStageInTier;
+            Nutrition = nutrition;
+            CanPurchaseCompanion = canPurchaseCompanion;
+        }
+    }
+
     public partial class UnitManager
     {
+        private const int MinTier = 1;
+        private const int MaxTier = 8;
+        private const int StagesPerTier = 3;
+        private const int CompanionCost = 3;
+
+        private static readonly Dictionary<int, List<string>> _campaignLevelsByTier = new();
+
         public static event Action<bool, string> GameEnded;
+        public static event Action<int> NutritionChanged;
+        public static event Action<StageProgressInfo> StageProgressChanged;
+        public static event Action<StageSettlementInfo> StageSettled;
+
+        private static int _nutrition;
+        private static int _currentTier;
+        private static int _currentStageIndex;
+        private static bool _awaitingSettlementChoice;
 
         internal static void EnsureInstance()
         {
@@ -33,6 +82,11 @@ namespace Manager
             return _isGameRunning;
         }
 
+        public static int GetNutrition()
+        {
+            return _nutrition;
+        }
+
         public static void PrepareNewGame()
         {
             EnsureInstance();
@@ -43,18 +97,27 @@ namespace Manager
             EncounterDirector.Reset();
             _elapsedBattleTime = 0f;
             LevelSystem.Reset();
+
+            _nutrition = 0;
+            _currentTier = MinTier;
+            _currentStageIndex = 0;
+            _awaitingSettlementChoice = false;
+            _campaignLevelsByTier.Clear();
+
+            NutritionChanged?.Invoke(_nutrition);
         }
 
         public static void StartNewGameWithInitialCompanion(InitialCompanionType companionType)
         {
             PrepareNewGame();
+            BuildCampaign();
 
             SpawnUnit(UnitRuntimeData.Player);
             SpawnUnit(CreateInitialCompanion(companionType));
-            var hasConfiguredLevel = WaveSystem.StartLevel();
-            if (!hasConfiguredLevel)
+
+            if (!StartCurrentStage())
             {
-                Debug.LogWarning("未加载到关卡配置，使用默认生成30只蚊子作为兜底。");
+                Debug.LogWarning("未加载到有效关卡配置，使用默认生成30只蚊子作为兜底。");
                 for (var i = 0; i < 30; i++)
                 {
                     var mosquito = Enemies.EnemiesFactor.CreateByTypeId("Mosquito");
@@ -81,6 +144,51 @@ namespace Manager
             EvolutionaryMomentSystem.ExitEvolutionaryMoment();
             EncounterDirector.Reset();
             _elapsedBattleTime = 0f;
+            _awaitingSettlementChoice = false;
+        }
+
+        public static void HandleStageCleared()
+        {
+            if (!_isGameRunning || _awaitingSettlementChoice) return;
+
+            _awaitingSettlementChoice = true;
+            _nutrition += 1;
+            NutritionChanged?.Invoke(_nutrition);
+
+            var totalInTier = GetCurrentTierLevels().Count;
+            StageSettled?.Invoke(new StageSettlementInfo(
+                _currentTier,
+                _currentStageIndex + 1,
+                totalInTier,
+                _nutrition,
+                _nutrition >= CompanionCost));
+        }
+
+        public static void ContinueAfterSettlement()
+        {
+            if (!_awaitingSettlementChoice) return;
+
+            _awaitingSettlementChoice = false;
+
+            if (!MoveToNextStage())
+            {
+                EndGame(true);
+                return;
+            }
+
+            StartCurrentStage();
+        }
+
+        public static bool BuyCompanionDuringSettlement(InitialCompanionType companionType)
+        {
+            if (!_awaitingSettlementChoice) return false;
+            if (_nutrition < CompanionCost) return false;
+
+            _nutrition -= CompanionCost;
+            NutritionChanged?.Invoke(_nutrition);
+            SpawnUnit(CreatePurchasedCompanion(companionType));
+            ContinueAfterSettlement();
+            return true;
         }
 
         public static List<UnitRuntimeData> GetUnits()
@@ -109,6 +217,66 @@ namespace Manager
         {
             EnsureInstance();
             EvolutionaryMomentSystem.ApplyOptionToExistingUnits(option, _instance.units);
+        }
+
+        private static bool StartCurrentStage()
+        {
+            _elapsedBattleTime = 0f;
+            var levels = GetCurrentTierLevels();
+            if (_currentStageIndex < 0 || _currentStageIndex >= levels.Count) return false;
+
+            var levelId = levels[_currentStageIndex];
+            var started = WaveSystem.StartLevel(levelId);
+            if (!started) return false;
+
+            StageProgressChanged?.Invoke(new StageProgressInfo(_currentTier, _currentStageIndex + 1, levels.Count, _nutrition));
+            return true;
+        }
+
+        private static bool MoveToNextStage()
+        {
+            _currentStageIndex += 1;
+            var levels = GetCurrentTierLevels();
+            if (_currentStageIndex < levels.Count)
+            {
+                return true;
+            }
+
+            _currentTier += 1;
+            _currentStageIndex = 0;
+            return _currentTier <= MaxTier;
+        }
+
+        private static void BuildCampaign()
+        {
+            for (var tier = MinTier; tier <= MaxTier; tier++)
+            {
+                var levels = WaveSystem.BuildTierPlaylist(tier, StagesPerTier);
+                if (levels.Count == 0)
+                {
+                    Debug.LogWarning($"难度{tier}没有找到关卡，运行将提前结束。");
+                }
+
+                _campaignLevelsByTier[tier] = levels;
+            }
+        }
+
+        private static List<string> GetCurrentTierLevels()
+        {
+            if (_campaignLevelsByTier.TryGetValue(_currentTier, out var levels))
+            {
+                return levels;
+            }
+
+            return new List<string>();
+        }
+
+        private static UnitRuntimeData CreatePurchasedCompanion(InitialCompanionType companionType)
+        {
+            var companion = CreateInitialCompanion(companionType);
+            companion.position += new Vector3(UnityEngine.Random.Range(-1.5f, 1.5f), UnityEngine.Random.Range(-1f, 1f), 0f);
+            companion.name = $"{companion.name}+";
+            return companion;
         }
 
         private static UnitRuntimeData CreateInitialCompanion(InitialCompanionType companionType)
@@ -175,12 +343,13 @@ namespace Manager
             if (!_isGameRunning) return;
 
             _isGameRunning = false;
+            _awaitingSettlementChoice = false;
             EvolutionaryMomentSystem.ExitEvolutionaryMoment();
             EncounterDirector.Reset();
             _elapsedBattleTime = 0f;
 
             var message = isVictory
-                ? "伙伴们成功保护了便便"
+                ? "恭喜通关全部8个难度，伙伴们守住了便便王国！"
                 : "你不再向这个世界散发臭臭了";
             GameEnded?.Invoke(isVictory, message);
         }

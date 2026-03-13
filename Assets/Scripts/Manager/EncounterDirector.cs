@@ -39,6 +39,21 @@ namespace Manager
             RuntimeSpawns.Clear();
         }
 
+
+        public static bool AreAllSpawnEventsFinished()
+        {
+            if (RuntimeSpawns.Count == 0) return true;
+
+            for (var i = 0; i < RuntimeSpawns.Count; i++)
+            {
+                if (RuntimeSpawns[i].spawnedCount < RuntimeSpawns[i].config.count)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
         public static void Tick(float elapsed)
         {
             for (var i = 0; i < RuntimeSpawns.Count; i++)

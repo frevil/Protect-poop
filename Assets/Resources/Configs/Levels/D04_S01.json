@@ -1,0 +1,54 @@
+{
+  "levelId": "D04_S01",
+  "difficulty": 4,
+  "spawns": [
+    {
+      "time": 0,
+      "position": {
+        "x": 8.8,
+        "y": 5,
+        "z": 0
+      },
+      "positionRandomRange": {
+        "x": 2.0,
+        "y": 2.0,
+        "z": 0
+      },
+      "enemyTypeId": "Mosquito",
+      "count": 15,
+      "interval": 0.8799999999999999
+    },
+    {
+      "time": 4.7,
+      "position": {
+        "x": 12,
+        "y": -1.5,
+        "z": 0
+      },
+      "positionRandomRange": {
+        "x": 1.8,
+        "y": 1.6,
+        "z": 0
+      },
+      "enemyTypeId": "Fly",
+      "count": 5,
+      "interval": 1.7200000000000002
+    },
+    {
+      "time": 9,
+      "position": {
+        "x": 11.5,
+        "y": 1.5,
+        "z": 0
+      },
+      "positionRandomRange": {
+        "x": 2.2,
+        "y": 2.0,
+        "z": 0
+      },
+      "enemyTypeId": "Mosquito",
+      "count": 8,
+      "interval": 0.7
+    }
+  ]
+}

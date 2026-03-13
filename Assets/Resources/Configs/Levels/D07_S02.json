@@ -1,0 +1,70 @@
+{
+  "levelId": "D07_S02",
+  "difficulty": 7,
+  "spawns": [
+    {
+      "time": 0,
+      "position": {
+        "x": 10.0,
+        "y": 3,
+        "z": 0
+      },
+      "positionRandomRange": {
+        "x": 2.0,
+        "y": 2.0,
+        "z": 0
+      },
+      "enemyTypeId": "Mosquito",
+      "count": 22,
+      "interval": 0.6399999999999999
+    },
+    {
+      "time": 5.4,
+      "position": {
+        "x": 12,
+        "y": 0.0,
+        "z": 0
+      },
+      "positionRandomRange": {
+        "x": 1.8,
+        "y": 1.6,
+        "z": 0
+      },
+      "enemyTypeId": "Fly",
+      "count": 9,
+      "interval": 1.3600000000000003
+    },
+    {
+      "time": 10,
+      "position": {
+        "x": 11.5,
+        "y": 0.5,
+        "z": 0
+      },
+      "positionRandomRange": {
+        "x": 2.2,
+        "y": 2.0,
+        "z": 0
+      },
+      "enemyTypeId": "Mosquito",
+      "count": 11,
+      "interval": 0.55
+    },
+    {
+      "time": 13.6,
+      "position": {
+        "x": 13,
+        "y": -3,
+        "z": 0
+      },
+      "positionRandomRange": {
+        "x": 2.0,
+        "y": 2.0,
+        "z": 0
+      },
+      "enemyTypeId": "Fly",
+      "count": 9,
+      "interval": 1.04
+    }
+  ]
+}

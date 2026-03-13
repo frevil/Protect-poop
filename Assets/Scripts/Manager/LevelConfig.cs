@@ -8,6 +8,7 @@ namespace Manager
     public class LevelSpawnPlan
     {
         public string levelId;
+        public int difficulty = 1;
         public List<SpawnEventConfig> spawns = new();
     }
 

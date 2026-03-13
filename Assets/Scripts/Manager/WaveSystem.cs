@@ -1,28 +1,18 @@
+using System;
 using System.Collections.Generic;
-using Enemies;
 using UnityEngine;
 
 namespace Manager
 {
     public class WaveSystem
     {
-        private const string DefaultLevelId = "关卡001";
-
-        public static void GenerateMosquito(int count = 30)
-        {
-            for (var i = 0; i < count; i++)
-            {
-                var mosquito = EnemiesFactor.CreateByTypeId("Mosquito");
-                mosquito.name = $"蚊子_{i}";
-                mosquito.position = new Vector3(10f, 5f, 0f) + new Vector3(Random.Range(0f, 3f), Random.Range(0f, 3f), 0f);
-                UnitManager.SpawnUnit(mosquito);
-            }
-        }
         private static readonly Dictionary<string, LevelSpawnPlan> LevelPlanById = new();
 
-        public static bool StartLevel(string levelId = DefaultLevelId)
+        public static bool StartLevel(string levelId)
         {
             LoadLevelPlansIfNeeded();
+
+            if (string.IsNullOrEmpty(levelId)) return false;
 
             if (LevelPlanById.TryGetValue(levelId, out var plan))
             {
@@ -32,6 +22,34 @@ namespace Manager
 
             Debug.LogWarning($"未找到关卡配置: {levelId}");
             return false;
+        }
+
+        public static bool AreAllSpawnEventsFinished()
+        {
+            return EncounterDirector.AreAllSpawnEventsFinished();
+        }
+
+        public static List<string> BuildTierPlaylist(int difficulty, int pickCount)
+        {
+            LoadLevelPlansIfNeeded();
+
+            var pool = new List<string>();
+            foreach (var pair in LevelPlanById)
+            {
+                if (pair.Value.difficulty == difficulty)
+                {
+                    pool.Add(pair.Key);
+                }
+            }
+
+            Shuffle(pool);
+
+            if (pool.Count > pickCount)
+            {
+                pool.RemoveRange(pickCount, pool.Count - pickCount);
+            }
+
+            return pool;
         }
 
         private static void LoadLevelPlansIfNeeded()
@@ -51,7 +69,17 @@ namespace Manager
                     continue;
                 }
 
+                plan.difficulty = Mathf.Clamp(plan.difficulty, 1, 8);
                 LevelPlanById[plan.levelId] = plan;
+            }
+        }
+
+        private static void Shuffle<T>(IList<T> list)
+        {
+            for (var i = list.Count - 1; i > 0; i--)
+            {
+                var swapIndex = UnityEngine.Random.Range(0, i + 1);
+                (list[i], list[swapIndex]) = (list[swapIndex], list[i]);
             }
         }
     }

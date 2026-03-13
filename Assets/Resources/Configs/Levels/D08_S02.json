@@ -1,0 +1,70 @@
+{
+  "levelId": "D08_S02",
+  "difficulty": 8,
+  "spawns": [
+    {
+      "time": 0,
+      "position": {
+        "x": 10.0,
+        "y": 3,
+        "z": 0
+      },
+      "positionRandomRange": {
+        "x": 2.0,
+        "y": 2.0,
+        "z": 0
+      },
+      "enemyTypeId": "Mosquito",
+      "count": 24,
+      "interval": 0.5599999999999999
+    },
+    {
+      "time": 5.4,
+      "position": {
+        "x": 12,
+        "y": 0.0,
+        "z": 0
+      },
+      "positionRandomRange": {
+        "x": 1.8,
+        "y": 1.6,
+        "z": 0
+      },
+      "enemyTypeId": "Fly",
+      "count": 10,
+      "interval": 1.2400000000000002
+    },
+    {
+      "time": 10,
+      "position": {
+        "x": 11.5,
+        "y": 0.5,
+        "z": 0
+      },
+      "positionRandomRange": {
+        "x": 2.2,
+        "y": 2.0,
+        "z": 0
+      },
+      "enemyTypeId": "Mosquito",
+      "count": 12,
+      "interval": 0.5
+    },
+    {
+      "time": 13.6,
+      "position": {
+        "x": 13,
+        "y": -3,
+        "z": 0
+      },
+      "positionRandomRange": {
+        "x": 2.0,
+        "y": 2.0,
+        "z": 0
+      },
+      "enemyTypeId": "Fly",
+      "count": 10,
+      "interval": 0.9600000000000001
+    }
+  ]
+}
