@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Core;
+using Manager.Evolution.Skills;
 using Scripts.Core;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -199,6 +200,8 @@ namespace Manager.Evolution
 
         public static void TickSkills(List<UnitRuntimeData> units, float dt)
         {
+            var skillContext = new EvolutionSkillContext(units, dt);
+
             for (var i = 0; i < SkillRuntimes.Count; i++)
             {
                 var runtime = SkillRuntimes[i];
@@ -221,31 +224,13 @@ namespace Manager.Evolution
                     continue;
                 }
 
-                if (runtime.isActive)
+                if (EvolutionSkillBehaviorRegistry.TryGetBehavior(runtime.skillId, out var behavior))
                 {
-                    runtime.durationTimer += dt;
-                    owner.attackIntervalScale = runtime.attackIntervalScale;
-                    if (runtime.durationTimer >= runtime.duration)
-                    {
-                        runtime.isActive = false;
-                        runtime.durationTimer = 0f;
-                        runtime.cooldownTimer = 0f;
-                        owner.attackIntervalScale = 1f;
-                    }
+                    behavior.Tick(ref runtime, ref owner, skillContext);
                 }
                 else
                 {
-                    runtime.cooldownTimer += dt;
-                    if (runtime.cooldownTimer >= runtime.cooldown)
-                    {
-                        runtime.isActive = true;
-                        runtime.durationTimer = 0f;
-                        owner.attackIntervalScale = runtime.attackIntervalScale;
-                    }
-                    else
-                    {
-                        owner.attackIntervalScale = 1f;
-                    }
+                    owner.attackIntervalScale = 1f;
                 }
 
                 units[ownerIndex] = owner;
