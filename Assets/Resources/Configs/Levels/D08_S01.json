@@ -66,5 +66,14 @@
       "count": 10,
       "interval": 0.9600000000000001
     }
-  ]
+  ],
+  "useSpawnBounds": true,
+  "spawnBoundsMin": {
+    "x": -8.0,
+    "y": -6.0
+  },
+  "spawnBoundsMax": {
+    "x": 16.0,
+    "y": 7.0
+  }
 }
