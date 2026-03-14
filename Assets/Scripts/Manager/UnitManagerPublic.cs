@@ -202,6 +202,7 @@ namespace Manager
             EnsureInstance();
             data.id = _instance.units.Count;
             data.attackIntervalScale = 1f;
+            data.position = SpawnPositionResolver.ClampToPlayableArea(data.position);
             EvolutionaryMomentSystem.OnUnitSpawned(ref data);
             _instance.units.Add(data);
 
@@ -313,7 +314,7 @@ namespace Manager
                     attackTimer = 0,
                     moveSpeed = 0f,
                     alive = true,
-                    position = new Vector3(-5f, 7f, 0),
+                    position = new Vector3(-5f, 3.5f, 0),
                     faction = Faction.Player,
                     targetIndex = -1
                 },

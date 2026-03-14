@@ -19,6 +19,7 @@ namespace Manager
         public static void Initialize(LevelSpawnPlan levelPlan)
         {
             RuntimeSpawns.Clear();
+            SpawnPositionResolver.ConfigureLevelBounds(levelPlan);
             if (levelPlan?.spawns == null) return;
 
             for (var i = 0; i < levelPlan.spawns.Count; i++)
@@ -37,6 +38,7 @@ namespace Manager
         public static void Reset()
         {
             RuntimeSpawns.Clear();
+            SpawnPositionResolver.ClearLevelBounds();
         }
 
 
