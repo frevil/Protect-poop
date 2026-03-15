@@ -48,6 +48,18 @@ namespace Manager
         }
     }
 
+    public readonly struct BattlePreparationInfo
+    {
+        public readonly int GridColumns;
+        public readonly int GridRows;
+
+        public BattlePreparationInfo(int gridColumns, int gridRows)
+        {
+            GridColumns = gridColumns;
+            GridRows = gridRows;
+        }
+    }
+
     public partial class UnitManager
     {
         private const int MinTier = 1;
@@ -61,11 +73,15 @@ namespace Manager
         public static event Action<int> NutritionChanged;
         public static event Action<StageProgressInfo> StageProgressChanged;
         public static event Action<StageSettlementInfo> StageSettled;
+        public static event Action<BattlePreparationInfo> BattlePreparationStarted;
+        public static event Action BattlePreparationEnded;
 
         private static int _nutrition;
         private static int _currentTier;
         private static int _currentStageIndex;
         private static bool _awaitingSettlementChoice;
+        private static bool _isBattlePreparing;
+        private static LevelSpawnPlan _currentPreparingLevelPlan;
 
         internal static void EnsureInstance()
         {
@@ -80,6 +96,12 @@ namespace Manager
         {
             EnsureInstance();
             return _isGameRunning;
+        }
+
+        public static bool IsBattlePreparing()
+        {
+            EnsureInstance();
+            return _isBattlePreparing;
         }
 
         public static int GetNutrition()
@@ -102,7 +124,10 @@ namespace Manager
             _currentTier = MinTier;
             _currentStageIndex = 0;
             _awaitingSettlementChoice = false;
+            _isBattlePreparing = false;
+            _currentPreparingLevelPlan = null;
             _campaignLevelsByTier.Clear();
+            BattlePreparationEnded?.Invoke();
 
             NutritionChanged?.Invoke(_nutrition);
         }
@@ -125,9 +150,12 @@ namespace Manager
                     mosquito.position = new Vector3(10f, 5f, 0f) + new Vector3(UnityEngine.Random.Range(0f, 3f), UnityEngine.Random.Range(0f, 3f), 0f);
                     SpawnUnit(mosquito);
                 }
+
+                _isGameRunning = true;
+                return;
             }
 
-            _isGameRunning = true;
+            EnterBattlePreparation();
         }
 
         public static void StartNewGame()
@@ -145,6 +173,9 @@ namespace Manager
             EncounterDirector.Reset();
             _elapsedBattleTime = 0f;
             _awaitingSettlementChoice = false;
+            _isBattlePreparing = false;
+            _currentPreparingLevelPlan = null;
+            BattlePreparationEnded?.Invoke();
         }
 
         public static void HandleStageCleared()
@@ -176,7 +207,22 @@ namespace Manager
                 return;
             }
 
-            StartCurrentStage();
+            if (!StartCurrentStage())
+            {
+                EndGame(true);
+                return;
+            }
+
+            EnterBattlePreparation();
+        }
+
+        public static void ConfirmBattlePreparation()
+        {
+            if (!_isBattlePreparing) return;
+
+            _isBattlePreparing = false;
+            _isGameRunning = true;
+            BattlePreparationEnded?.Invoke();
         }
 
         public static bool BuyCompanionDuringSettlement(InitialCompanionType companionType)
@@ -230,8 +276,19 @@ namespace Manager
             var started = WaveSystem.StartLevel(levelId);
             if (!started) return false;
 
+            _currentPreparingLevelPlan = WaveSystem.GetLevelPlan(levelId);
             StageProgressChanged?.Invoke(new StageProgressInfo(_currentTier, _currentStageIndex + 1, levels.Count, _nutrition));
             return true;
+        }
+
+        private static void EnterBattlePreparation()
+        {
+            _isGameRunning = false;
+            _isBattlePreparing = true;
+
+            var columns = _currentPreparingLevelPlan?.gridColumns ?? 15;
+            var rows = _currentPreparingLevelPlan?.gridRows ?? 8;
+            BattlePreparationStarted?.Invoke(new BattlePreparationInfo(Mathf.Max(1, columns), Mathf.Max(1, rows)));
         }
 
         private static bool MoveToNextStage()
@@ -341,13 +398,16 @@ namespace Manager
 
         private static void EndGame(bool isVictory)
         {
-            if (!_isGameRunning) return;
+            if (!_isGameRunning && !_isBattlePreparing) return;
 
             _isGameRunning = false;
             _awaitingSettlementChoice = false;
+            _isBattlePreparing = false;
+            _currentPreparingLevelPlan = null;
             EvolutionaryMomentSystem.ExitEvolutionaryMoment();
             EncounterDirector.Reset();
             _elapsedBattleTime = 0f;
+            BattlePreparationEnded?.Invoke();
 
             var message = isVictory
                 ? "恭喜通关全部8个难度，伙伴们守住了便便王国！"

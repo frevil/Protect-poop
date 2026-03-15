@@ -10,6 +10,12 @@ namespace Manager
         private Text _stageText;
         private GameObject _settlementPanel;
         private Text _settlementText;
+        private GameObject _preparationPanel;
+        private Text _preparationText;
+
+        private int _gridColumns = 15;
+        private int _gridRows = 8;
+        private Texture2D _whiteTexture;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Bootstrap()
@@ -27,11 +33,20 @@ namespace Manager
             BuildUI();
             RefreshRunningState();
             HandleNutritionChanged(UnitManager.GetNutrition());
+            _whiteTexture = new Texture2D(1, 1);
+            _whiteTexture.SetPixel(0, 0, Color.white);
+            _whiteTexture.Apply();
         }
 
         private void Update()
         {
             RefreshRunningState();
+        }
+
+        private void OnGUI()
+        {
+            if (!UnitManager.IsBattlePreparing()) return;
+            DrawPreparationGrid();
         }
 
         private void OnEnable()
@@ -40,6 +55,8 @@ namespace Manager
             UnitManager.StageProgressChanged += HandleStageProgressChanged;
             UnitManager.StageSettled += HandleStageSettled;
             UnitManager.GameEnded += HandleGameEnded;
+            UnitManager.BattlePreparationStarted += HandleBattlePreparationStarted;
+            UnitManager.BattlePreparationEnded += HandleBattlePreparationEnded;
         }
 
         private void OnDisable()
@@ -48,6 +65,8 @@ namespace Manager
             UnitManager.StageProgressChanged -= HandleStageProgressChanged;
             UnitManager.StageSettled -= HandleStageSettled;
             UnitManager.GameEnded -= HandleGameEnded;
+            UnitManager.BattlePreparationStarted -= HandleBattlePreparationStarted;
+            UnitManager.BattlePreparationEnded -= HandleBattlePreparationEnded;
         }
 
         private void BuildUI()
@@ -86,6 +105,9 @@ namespace Manager
 
             _settlementPanel = BuildSettlementPanel(root.transform, font);
             _settlementPanel.SetActive(false);
+
+            _preparationPanel = BuildPreparationPanel(root.transform, font);
+            _preparationPanel.SetActive(false);
         }
 
         private GameObject BuildSettlementPanel(Transform root, Font font)
@@ -124,6 +146,36 @@ namespace Manager
             CreateActionButton(content.transform, "购买蜥蜴（3营养）", () => TryBuyCompanion(InitialCompanionType.Lizard), font);
             CreateActionButton(content.transform, "不购买，继续闯关", ContinueWithoutBuying, font);
 
+            return panel;
+        }
+
+        private GameObject BuildPreparationPanel(Transform root, Font font)
+        {
+            var panel = CreateUIObject("PreparationPanel", root);
+            StretchToParent(panel.GetComponent<RectTransform>());
+
+            var top = CreateUIObject("TopBar", panel.transform);
+            var topRect = top.GetComponent<RectTransform>();
+            topRect.anchorMin = new Vector2(0.5f, 1f);
+            topRect.anchorMax = new Vector2(0.5f, 1f);
+            topRect.pivot = new Vector2(0.5f, 1f);
+            topRect.anchoredPosition = new Vector2(0f, -20f);
+            topRect.sizeDelta = new Vector2(900f, 160f);
+
+            var topBg = top.AddComponent<Image>();
+            topBg.color = new Color(0f, 0f, 0f, 0.5f);
+
+            var layout = top.AddComponent<VerticalLayoutGroup>();
+            layout.padding = new RectOffset(20, 20, 20, 20);
+            layout.spacing = 10f;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+
+            _preparationText = CreateHUDText(top.transform, font, 26);
+            _preparationText.alignment = TextAnchor.MiddleCenter;
+            _preparationText.text = "战斗准备中";
+
+            CreateActionButton(top.transform, "确认站位并开始战斗", UnitManager.ConfirmBattlePreparation, font);
             return panel;
         }
 
@@ -180,12 +232,29 @@ namespace Manager
                                    $"已完成难度{info.Tier}的第 {info.ClearedStageInTier}/{info.TotalStageInTier} 关。\n" +
                                    "现在可选择是否花费3点营养购买新伙伴。";
             _settlementPanel.SetActive(true);
+            _preparationPanel.SetActive(false);
             Time.timeScale = 0f;
+        }
+
+        private void HandleBattlePreparationStarted(BattlePreparationInfo info)
+        {
+            _gridColumns = Mathf.Max(1, info.GridColumns);
+            _gridRows = Mathf.Max(1, info.GridRows);
+            _preparationText.text = $"战斗准备：拖动伙伴到格子中。当前分割 {_gridColumns} x {_gridRows}";
+            _preparationPanel.SetActive(true);
+            _settlementPanel.SetActive(false);
+            Time.timeScale = 1f;
+        }
+
+        private void HandleBattlePreparationEnded()
+        {
+            _preparationPanel.SetActive(false);
         }
 
         private void HandleGameEnded(bool _, string __)
         {
             _settlementPanel.SetActive(false);
+            _preparationPanel.SetActive(false);
             Time.timeScale = 1f;
         }
 
@@ -211,7 +280,61 @@ namespace Manager
 
         private void RefreshRunningState()
         {
-            _canvas.enabled = UnitManager.IsGameRunning() || _settlementPanel.activeSelf;
+            _canvas.enabled = UnitManager.IsGameRunning() || UnitManager.IsBattlePreparing() || _settlementPanel.activeSelf;
+        }
+
+        private void DrawPreparationGrid()
+        {
+            if (!BattleViewBounds.TryGetViewRectOnBattlePlane(out var center, out var halfSize) || Camera.main == null)
+            {
+                return;
+            }
+
+            var min = center - halfSize;
+            var max = center + halfSize;
+            var camera = Camera.main;
+            var color = new Color(1f, 1f, 1f, 0.25f);
+
+            for (var x = 0; x <= _gridColumns; x++)
+            {
+                var worldX = Mathf.Lerp(min.x, max.x, x / (float)_gridColumns);
+                DrawWorldLine(camera, new Vector3(worldX, min.y, 0f), new Vector3(worldX, max.y, 0f), color, 1f);
+            }
+
+            for (var y = 0; y <= _gridRows; y++)
+            {
+                var worldY = Mathf.Lerp(min.y, max.y, y / (float)_gridRows);
+                DrawWorldLine(camera, new Vector3(min.x, worldY, 0f), new Vector3(max.x, worldY, 0f), color, 1f);
+            }
+        }
+
+        private void DrawWorldLine(Camera camera, Vector3 startWorld, Vector3 endWorld, Color color, float thickness)
+        {
+            var start = camera.WorldToScreenPoint(startWorld);
+            var end = camera.WorldToScreenPoint(endWorld);
+            if (start.z <= 0 || end.z <= 0) return;
+
+            var p1 = new Vector2(start.x, Screen.height - start.y);
+            var p2 = new Vector2(end.x, Screen.height - end.y);
+            DrawLine(p1, p2, color, thickness);
+        }
+
+        private void DrawLine(Vector2 p1, Vector2 p2, Color color, float thickness)
+        {
+            var matrix = GUI.matrix;
+            var colorBak = GUI.color;
+
+            var angle = Vector3.Angle(p2 - p1, Vector2.right);
+            if (p1.y > p2.y)
+            {
+                angle = -angle;
+            }
+
+            GUI.color = color;
+            GUIUtility.RotateAroundPivot(angle, p1);
+            GUI.DrawTexture(new Rect(p1.x, p1.y - thickness / 2f, (p2 - p1).magnitude, thickness), _whiteTexture);
+            GUI.matrix = matrix;
+            GUI.color = colorBak;
         }
 
         private static GameObject CreateUIObject(string objectName, Transform parent)

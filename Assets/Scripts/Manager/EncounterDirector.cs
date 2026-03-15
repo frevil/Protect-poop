@@ -101,13 +101,11 @@ namespace Manager
                 return;
             }
 
-            var offset = new Vector3(
-                Random.Range(-config.positionRandomRange.x, config.positionRandomRange.x),
-                Random.Range(-config.positionRandomRange.y, config.positionRandomRange.y),
-                Random.Range(-config.positionRandomRange.z, config.positionRandomRange.z));
+            var spawnPosition = SpawnPositionResolver.ResolveSpawnPosition(config.position);
+            var offset = SpawnPositionResolver.ResolveSpawnOffset(config.positionRandomRange);
 
             newEnemy.name = $"{config.enemyTypeId}_{Time.frameCount}";
-            newEnemy.position = config.position + offset;
+            newEnemy.position = spawnPosition + offset;
             UnitManager.SpawnUnit(newEnemy);
         }
     }

@@ -29,6 +29,14 @@ namespace Manager
             return EncounterDirector.AreAllSpawnEventsFinished();
         }
 
+
+        public static LevelSpawnPlan GetLevelPlan(string levelId)
+        {
+            LoadLevelPlansIfNeeded();
+            if (string.IsNullOrEmpty(levelId)) return null;
+            return LevelPlanById.TryGetValue(levelId, out var plan) ? plan : null;
+        }
+
         public static List<string> BuildTierPlaylist(int difficulty, int pickCount)
         {
             LoadLevelPlansIfNeeded();
@@ -70,6 +78,8 @@ namespace Manager
                 }
 
                 plan.difficulty = Mathf.Clamp(plan.difficulty, 1, 8);
+                plan.gridColumns = Mathf.Max(1, plan.gridColumns <= 0 ? 15 : plan.gridColumns);
+                plan.gridRows = Mathf.Max(1, plan.gridRows <= 0 ? 8 : plan.gridRows);
                 LevelPlanById[plan.levelId] = plan;
             }
         }

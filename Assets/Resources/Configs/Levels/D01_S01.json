@@ -5,13 +5,13 @@
     {
       "time": 0,
       "position": {
-        "x": 8.8,
-        "y": 5,
+        "x": 1.1,
+        "y": 1.1111,
         "z": 0
       },
       "positionRandomRange": {
-        "x": 2.0,
-        "y": 2.0,
+        "x": 0.25,
+        "y": 0.4444,
         "z": 0
       },
       "enemyTypeId": "Mosquito",
@@ -21,13 +21,13 @@
     {
       "time": 4.7,
       "position": {
-        "x": 12,
-        "y": -1.5,
+        "x": 1.5,
+        "y": -0.3333,
         "z": 0
       },
       "positionRandomRange": {
-        "x": 1.8,
-        "y": 1.6,
+        "x": 0.225,
+        "y": 0.3556,
         "z": 0
       },
       "enemyTypeId": "Fly",
@@ -37,11 +37,12 @@
   ],
   "useSpawnBounds": true,
   "spawnBoundsMin": {
-    "x": -8.0,
-    "y": -6.0
+    "x": -1.0,
+    "y": -1.3333
   },
   "spawnBoundsMax": {
-    "x": 16.0,
-    "y": 7.0
-  }
+    "x": 2.0,
+    "y": 1.5556
+  },
+  "useNormalizedCoordinates": true
 }
