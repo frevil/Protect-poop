@@ -79,7 +79,9 @@ namespace Manager
                 BattleViewBounds.TryGetMouseWorldPositionOnBattlePlane(out var world))
             {
                 var gridSnapped = SnapWorldToGrid(world, _prepGridColumns, _prepGridRows);
-                units[_draggingCompanionIndex].position = SpawnPositionResolver.ClampToPlayableArea(gridSnapped);
+                var unit = units[_draggingCompanionIndex];
+                unit.position = SpawnPositionResolver.ClampToPlayableArea(gridSnapped);
+                units[_draggingCompanionIndex] = unit;
             }
 
             if (Input.GetMouseButtonUp(0))
