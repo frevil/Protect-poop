@@ -154,28 +154,34 @@ namespace Manager
             var panel = CreateUIObject("PreparationPanel", root);
             StretchToParent(panel.GetComponent<RectTransform>());
 
-            var top = CreateUIObject("TopBar", panel.transform);
+            var blocker = panel.AddComponent<Image>();
+            blocker.color = new Color(0f, 0f, 0f, 0.35f);
+
+            var top = CreateUIObject("PreparationCard", panel.transform);
             var topRect = top.GetComponent<RectTransform>();
-            topRect.anchorMin = new Vector2(0.5f, 1f);
-            topRect.anchorMax = new Vector2(0.5f, 1f);
-            topRect.pivot = new Vector2(0.5f, 1f);
-            topRect.anchoredPosition = new Vector2(0f, -20f);
-            topRect.sizeDelta = new Vector2(900f, 160f);
+            topRect.anchorMin = new Vector2(0.5f, 0.5f);
+            topRect.anchorMax = new Vector2(0.5f, 0.5f);
+            topRect.pivot = new Vector2(0.5f, 0.5f);
+            topRect.anchoredPosition = new Vector2(0f, 160f);
+            topRect.sizeDelta = new Vector2(620f, 220f);
 
             var topBg = top.AddComponent<Image>();
-            topBg.color = new Color(0f, 0f, 0f, 0.5f);
+            topBg.color = new Color(0.08f, 0.1f, 0.14f, 0.92f);
 
             var layout = top.AddComponent<VerticalLayoutGroup>();
-            layout.padding = new RectOffset(20, 20, 20, 20);
-            layout.spacing = 10f;
+            layout.padding = new RectOffset(24, 24, 24, 24);
+            layout.spacing = 14f;
             layout.childControlWidth = true;
             layout.childControlHeight = true;
+            layout.childForceExpandWidth = false;
+            layout.childAlignment = TextAnchor.UpperCenter;
 
             _preparationText = CreateHUDText(top.transform, font, 26);
             _preparationText.alignment = TextAnchor.MiddleCenter;
+            _preparationText.horizontalOverflow = HorizontalWrapMode.Wrap;
             _preparationText.text = "战斗准备中";
 
-            CreateActionButton(top.transform, "确认站位并开始战斗", UnitManager.ConfirmBattlePreparation, font, 46f, 22);
+            CreateActionButton(top.transform, "确认站位并开始战斗", UnitManager.ConfirmBattlePreparation, font, 52f, 22, 420f);
             return panel;
         }
 
@@ -192,7 +198,7 @@ namespace Manager
             return text;
         }
 
-        private static void CreateActionButton(Transform parent, string label, UnityEngine.Events.UnityAction action, Font font, float preferredHeight = 64f, int fontSize = 28)
+        private static void CreateActionButton(Transform parent, string label, UnityEngine.Events.UnityAction action, Font font, float preferredHeight = 64f, int fontSize = 28, float preferredWidth = -1f)
         {
             var buttonObj = CreateUIObject($"Button_{label}", parent);
             var image = buttonObj.AddComponent<Image>();
@@ -204,6 +210,10 @@ namespace Manager
 
             var layoutElement = buttonObj.AddComponent<LayoutElement>();
             layoutElement.preferredHeight = preferredHeight;
+            if (preferredWidth > 0f)
+            {
+                layoutElement.preferredWidth = preferredWidth;
+            }
 
             var text = CreateUIObject("Label", buttonObj.transform).AddComponent<Text>();
             text.font = font;
