@@ -29,7 +29,7 @@ namespace Render
 
         private void Update()
         {
-            if (!UnitManager.IsGameRunning())
+            if (!UnitManager.IsGameRunning() && !UnitManager.IsBattlePreparing())
             {
                 HideAllUnits();
                 return;

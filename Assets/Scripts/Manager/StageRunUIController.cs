@@ -175,7 +175,7 @@ namespace Manager
             _preparationText.alignment = TextAnchor.MiddleCenter;
             _preparationText.text = "战斗准备中";
 
-            CreateActionButton(top.transform, "确认站位并开始战斗", UnitManager.ConfirmBattlePreparation, font);
+            CreateActionButton(top.transform, "确认站位并开始战斗", UnitManager.ConfirmBattlePreparation, font, 46f, 22);
             return panel;
         }
 
@@ -192,7 +192,7 @@ namespace Manager
             return text;
         }
 
-        private static void CreateActionButton(Transform parent, string label, UnityEngine.Events.UnityAction action, Font font)
+        private static void CreateActionButton(Transform parent, string label, UnityEngine.Events.UnityAction action, Font font, float preferredHeight = 64f, int fontSize = 28)
         {
             var buttonObj = CreateUIObject($"Button_{label}", parent);
             var image = buttonObj.AddComponent<Image>();
@@ -203,11 +203,11 @@ namespace Manager
             button.onClick.AddListener(action);
 
             var layoutElement = buttonObj.AddComponent<LayoutElement>();
-            layoutElement.preferredHeight = 64f;
+            layoutElement.preferredHeight = preferredHeight;
 
             var text = CreateUIObject("Label", buttonObj.transform).AddComponent<Text>();
             text.font = font;
-            text.fontSize = 28;
+            text.fontSize = fontSize;
             text.alignment = TextAnchor.MiddleCenter;
             text.color = Color.white;
             text.text = label;
