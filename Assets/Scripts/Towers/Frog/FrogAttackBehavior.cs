@@ -42,7 +42,13 @@ namespace Manager.AttackBehaviors
             }
 
             var targetUnit = context.Units[state.targetIndex];
-            var tipDestination = state.phase == FrogTonguePhase.Extending && targetUnit.alive
+            if (state.phase == FrogTonguePhase.Extending && !targetUnit.alive)
+            {
+                // 目标可能被其他伙伴提前击杀：立刻进入回收阶段，避免舌头状态卡死导致呱呱后续不再攻击。
+                state.phase = FrogTonguePhase.Retracting;
+            }
+
+            var tipDestination = state.phase == FrogTonguePhase.Extending
                 ? targetUnit.position
                 : frog.position;
 
