@@ -10,6 +10,9 @@ namespace Manager
         public string levelId;
         public int difficulty = 1;
         public bool useSpawnBounds;
+        public bool useNormalizedCoordinates = true;
+        public int gridColumns = 15;
+        public int gridRows = 8;
         public Vector2 spawnBoundsMin;
         public Vector2 spawnBoundsMax;
         public List<SpawnEventConfig> spawns = new();
