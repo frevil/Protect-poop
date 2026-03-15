@@ -10,10 +10,12 @@ namespace Manager
         private static bool _hasLevelBounds;
         private static Vector2 _levelMin;
         private static Vector2 _levelMax;
+        private static bool _useNormalizedCoordinates;
 
         public static void ConfigureLevelBounds(LevelSpawnPlan levelPlan)
         {
             _hasLevelBounds = false;
+            _useNormalizedCoordinates = false;
 
             if (levelPlan == null || !levelPlan.useSpawnBounds)
             {
@@ -27,13 +29,44 @@ namespace Manager
             }
 
             _hasLevelBounds = true;
-            _levelMin = levelPlan.spawnBoundsMin;
-            _levelMax = levelPlan.spawnBoundsMax;
+            if (levelPlan.useNormalizedCoordinates)
+            {
+                _levelMin = NormalizedToWorld(levelPlan.spawnBoundsMin);
+                _levelMax = NormalizedToWorld(levelPlan.spawnBoundsMax);
+            }
+            else
+            {
+                _levelMin = levelPlan.spawnBoundsMin;
+                _levelMax = levelPlan.spawnBoundsMax;
+            }
+
+            _useNormalizedCoordinates = levelPlan.useNormalizedCoordinates;
         }
 
         public static void ClearLevelBounds()
         {
             _hasLevelBounds = false;
+            _useNormalizedCoordinates = false;
+        }
+
+        public static Vector3 ResolveSpawnPosition(Vector3 configuredPosition)
+        {
+            var world = _useNormalizedCoordinates
+                ? BattleViewBounds.NormalizedToWorld(configuredPosition)
+                : configuredPosition;
+            return BattleViewBounds.EnsurePlaneZ(world);
+        }
+
+        public static Vector3 ResolveSpawnOffset(Vector3 configuredRandomRange)
+        {
+            var range = _useNormalizedCoordinates
+                ? BattleViewBounds.NormalizedToWorldOffset(new Vector2(configuredRandomRange.x, configuredRandomRange.y))
+                : new Vector2(configuredRandomRange.x, configuredRandomRange.y);
+
+            return new Vector3(
+                Random.Range(-range.x, range.x),
+                Random.Range(-range.y, range.y),
+                0f);
         }
 
         public static Vector3 ClampToPlayableArea(Vector3 position)
@@ -43,9 +76,10 @@ namespace Manager
                 return new Vector3(
                     Mathf.Clamp(position.x, min.x, max.x),
                     Mathf.Clamp(position.y, min.y, max.y),
-                    position.z);
+                    0f);
             }
 
+            position.z = 0f;
             return position;
         }
 
@@ -58,30 +92,22 @@ namespace Manager
                 return true;
             }
 
-            var camera = Camera.main;
-            if (camera == null)
+            if (BattleViewBounds.TryGetViewRectOnBattlePlane(out var center, out var halfSize))
             {
-                min = DefaultSpawnMin;
-                max = DefaultSpawnMax;
+                min = center - halfSize;
+                max = center + halfSize;
                 return true;
             }
 
-            if (camera.orthographic)
-            {
-                var halfHeight = camera.orthographicSize;
-                var halfWidth = halfHeight * camera.aspect;
-                var center = (Vector2)camera.transform.position;
-                min = center - new Vector2(halfWidth, halfHeight);
-                max = center + new Vector2(halfWidth, halfHeight);
-                return true;
-            }
-
-            var depth = Mathf.Abs(camera.transform.position.z);
-            var bottomLeft = camera.ScreenToWorldPoint(new Vector3(0f, 0f, depth));
-            var topRight = camera.ScreenToWorldPoint(new Vector3(Screen.width, Screen.height, depth));
-            min = new Vector2(Mathf.Min(bottomLeft.x, topRight.x), Mathf.Min(bottomLeft.y, topRight.y));
-            max = new Vector2(Mathf.Max(bottomLeft.x, topRight.x), Mathf.Max(bottomLeft.y, topRight.y));
+            min = DefaultSpawnMin;
+            max = DefaultSpawnMax;
             return true;
+        }
+
+        private static Vector2 NormalizedToWorld(Vector2 normalized)
+        {
+            var world = BattleViewBounds.NormalizedToWorld(new Vector3(normalized.x, normalized.y, 0f));
+            return new Vector2(world.x, world.y);
         }
     }
 }
