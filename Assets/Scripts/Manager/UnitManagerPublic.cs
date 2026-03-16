@@ -246,7 +246,6 @@ namespace Manager
         public static int SpawnUnit(UnitRuntimeData data)
         {
             EnsureInstance();
-            data.id = _instance.units.Count;
             data.attackIntervalScale = 1f;
             if (!data.alive)
             {
@@ -263,7 +262,18 @@ namespace Manager
 
             data.position = SpawnPositionResolver.ClampToPlayableArea(data.position);
             EvolutionaryMomentSystem.OnUnitSpawned(ref data);
-            _instance.units.Add(data);
+
+            var reusableIndex = FindReusableUnitSlot(data);
+            if (reusableIndex >= 0)
+            {
+                data.id = reusableIndex;
+                _instance.units[reusableIndex] = data;
+            }
+            else
+            {
+                data.id = _instance.units.Count;
+                _instance.units.Add(data);
+            }
 
             if (data.faction == Faction.Player && data.unitType != "PlayerBase")
             {
@@ -271,6 +281,25 @@ namespace Manager
             }
 
             return data.id;
+        }
+
+        private static int FindReusableUnitSlot(UnitRuntimeData data)
+        {
+            // 仅复用阵亡敌人的槽位，避免覆盖玩家阵营与永久单位。
+            if (data.faction != Faction.Enemy)
+            {
+                return -1;
+            }
+
+            for (var i = 0; i < _instance.units.Count; i++)
+            {
+                var candidate = _instance.units[i];
+                if (candidate.alive) continue;
+                if (candidate.faction != Faction.Enemy) continue;
+                return i;
+            }
+
+            return -1;
         }
 
         public static void ApplyEvolutionaryMomentOption(EvolutionaryMomentOption option)
