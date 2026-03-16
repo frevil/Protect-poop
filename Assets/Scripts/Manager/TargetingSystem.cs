@@ -50,7 +50,6 @@ namespace Manager
                         if (!units[j].alive) continue;
                         if (!units[j].isTargetable) continue;
                         if (units[j].faction == unit.faction) continue;
-
                         float dist = (units[j].position - unit.position).sqrMagnitude;
                         if (dist < minDist)
                         {
