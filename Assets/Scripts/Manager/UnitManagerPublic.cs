@@ -248,6 +248,19 @@ namespace Manager
             EnsureInstance();
             data.id = _instance.units.Count;
             data.attackIntervalScale = 1f;
+            if (!data.alive)
+            {
+                data.isTargetable = false;
+            }
+            else if (!data.isTargetable)
+            {
+                // 保留配置显式不可被索敌（如苍蝇卵）。
+            }
+            else
+            {
+                data.isTargetable = true;
+            }
+
             data.position = SpawnPositionResolver.ClampToPlayableArea(data.position);
             EvolutionaryMomentSystem.OnUnitSpawned(ref data);
             _instance.units.Add(data);

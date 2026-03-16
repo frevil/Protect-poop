@@ -34,6 +34,20 @@
       "scale": 1.2,
       "zOffset": 0,
       "sortingOrder": 10
+    },
+    {
+      "unitType": "BlowFly",
+      "textureResourcePath": "UnitVisuals/fly",
+      "scale": 1.2,
+      "zOffset": 0,
+      "sortingOrder": 10
+    },
+    {
+      "unitType": "FlyEgg",
+      "textureResourcePath": "UnitVisuals/mosquito",
+      "scale": 0.28,
+      "zOffset": 0,
+      "sortingOrder": 9
     }
   ]
 }
