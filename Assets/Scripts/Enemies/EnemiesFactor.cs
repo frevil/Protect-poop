@@ -11,6 +11,8 @@ namespace Enemies
             {
                 "Mosquito" => CreateMosquito(),
                 "Fly" => CreateFly(),
+                "BlowFly" => CreateBlowFly(),
+                "FlyEgg" => CreateFlyEgg(),
                 _ => CreateInvalidEnemy(enemyTypeId)
             };
         }
@@ -20,6 +22,7 @@ namespace Enemies
             return new UnitRuntimeData
             {
                 alive = true,
+                isTargetable = true,
                 unitType = "Mosquito",
                 moveSpeed = 1f,
                 maxHp = 3,
@@ -40,6 +43,7 @@ namespace Enemies
             return new UnitRuntimeData
             {
                 alive = true,
+                isTargetable = true,
                 unitType = "Fly",
                 moveSpeed = 1f,
                 maxHp = 10,
@@ -55,12 +59,56 @@ namespace Enemies
             };
         }
 
+        public static UnitRuntimeData CreateBlowFly()
+        {
+            return new UnitRuntimeData
+            {
+                alive = true,
+                isTargetable = true,
+                unitType = "BlowFly",
+                moveSpeed = 2.8f,
+                maxHp = 24,
+                hp = 24,
+                attack = 14,
+                attackRange = 1,
+                attackInterval = 5,
+                attackIntervalScale = 1,
+                attackTimer = 0,
+                faction = 1,
+                targetIndex = -1,
+                killExp = 5
+            };
+        }
+
+        public static UnitRuntimeData CreateFlyEgg()
+        {
+            return new UnitRuntimeData
+            {
+                alive = true,
+                isTargetable = false,
+                unitType = "FlyEgg",
+                moveSpeed = 0,
+                maxHp = 1,
+                hp = 1,
+                attack = 0,
+                attackRange = 0,
+                attackInterval = 0,
+                attackIntervalScale = 1,
+                attackTimer = 0,
+                faction = 1,
+                targetIndex = -1,
+                killExp = 0,
+                controlState = UnitControlState.Suppressed | UnitControlState.CannotMove
+            };
+        }
+
         private static UnitRuntimeData CreateInvalidEnemy(string enemyTypeId)
         {
             Debug.LogWarning($"未知敌人类型: {enemyTypeId}");
             return new UnitRuntimeData
             {
                 alive = false,
+                isTargetable = false,
                 unitType = enemyTypeId,
                 faction = 1
             };

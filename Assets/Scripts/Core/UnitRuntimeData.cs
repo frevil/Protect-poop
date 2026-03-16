@@ -30,6 +30,7 @@ namespace Core
         public int killExp;    // 被击杀时掉落的经验值
 
         public bool alive;
+        public bool isTargetable;
 
         public UnitControlState controlState;
 
@@ -57,6 +58,7 @@ namespace Core
             faction = 0,
             targetIndex = -1,
             alive = true,
+            isTargetable = true,
             controlState = UnitControlState.Normal,
             position = new Vector3(-7.5f,-3f,0)
         };
