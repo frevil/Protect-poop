@@ -21,9 +21,12 @@ namespace Manager
                 halfSize = FallbackHalfSize;
             }
 
+            var min = center - halfSize;
+            var size = halfSize * 2f;
+
             return new Vector3(
-                center.x + normalizedPosition.x * halfSize.x,
-                center.y + normalizedPosition.y * halfSize.y,
+                min.x + normalizedPosition.x * size.x,
+                min.y + normalizedPosition.y * size.y,
                 PlaneZ);
         }
 
@@ -34,7 +37,9 @@ namespace Manager
                 halfSize = FallbackHalfSize;
             }
 
-            return new Vector2(normalizedOffset.x * halfSize.x, normalizedOffset.y * halfSize.y);
+            var size = halfSize * 2f;
+
+            return new Vector2(normalizedOffset.x * size.x, normalizedOffset.y * size.y);
         }
 
         public static Vector3 WorldToNormalized(Vector3 worldPosition)
@@ -47,9 +52,10 @@ namespace Manager
 
             var safeHalfWidth = Mathf.Max(halfSize.x, 0.0001f);
             var safeHalfHeight = Mathf.Max(halfSize.y, 0.0001f);
+            var min = center - halfSize;
             return new Vector3(
-                (worldPosition.x - center.x) / safeHalfWidth,
-                (worldPosition.y - center.y) / safeHalfHeight,
+                (worldPosition.x - min.x) / (safeHalfWidth * 2f),
+                (worldPosition.y - min.y) / (safeHalfHeight * 2f),
                 0f);
         }
 
