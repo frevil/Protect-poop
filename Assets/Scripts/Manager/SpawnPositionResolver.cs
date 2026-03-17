@@ -59,14 +59,19 @@ namespace Manager
 
         public static Vector3 ResolveSpawnOffset(Vector3 configuredRandomRange)
         {
-            var range = _useNormalizedCoordinates
-                ? BattleViewBounds.NormalizedToWorldOffset(new Vector2(configuredRandomRange.x, configuredRandomRange.y))
-                : new Vector2(configuredRandomRange.x, configuredRandomRange.y);
+            var range = ResolveConfiguredOffset(new Vector2(configuredRandomRange.x, configuredRandomRange.y));
 
             return new Vector3(
                 Random.Range(-range.x, range.x),
                 Random.Range(-range.y, range.y),
                 0f);
+        }
+
+        public static Vector2 ResolveConfiguredOffset(Vector2 configuredOffset)
+        {
+            return _useNormalizedCoordinates
+                ? BattleViewBounds.NormalizedToWorldOffset(configuredOffset)
+                : configuredOffset;
         }
 
         public static Vector3 ClampToPlayableArea(Vector3 position)
