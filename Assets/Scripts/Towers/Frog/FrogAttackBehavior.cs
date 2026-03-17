@@ -119,6 +119,18 @@ namespace Manager.AttackBehaviors
             }
         }
 
+        public void ResetState()
+        {
+            foreach (var item in FrogTongueStates)
+            {
+                if (item.Value.lineRenderer != null)
+                {
+                    Object.Destroy(item.Value.lineRenderer.gameObject);
+                }
+            }
+
+            FrogTongueStates.Clear();
+        }
 
         private static LineRenderer CreateTongueLineRenderer(Transform effectRoot, int frogId)
         {

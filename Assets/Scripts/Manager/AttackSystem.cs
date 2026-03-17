@@ -77,6 +77,20 @@ namespace Manager
             _effectRoot = go.transform;
         }
 
+        public static void ResetState()
+        {
+            foreach (var behavior in AttackBehaviorRegistry.GetAll())
+            {
+                behavior.ResetState();
+            }
+
+            if (_effectRoot != null)
+            {
+                Object.Destroy(_effectRoot.gameObject);
+                _effectRoot = null;
+            }
+        }
+
         private static void ApplyDamage(List<UnitRuntimeData> units, int targetIndex, float damage, string attackerName)
         {
             if (targetIndex < 0 || targetIndex >= units.Count) return;

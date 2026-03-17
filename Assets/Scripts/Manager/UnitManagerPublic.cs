@@ -115,6 +115,7 @@ namespace Manager
             Time.timeScale = 1f;
             _isGameRunning = false;
             _instance.units.Clear();
+            AttackSystem.ResetState();
             EvolutionaryMomentSystem.ResetForNewRun();
             EncounterDirector.Reset();
             _elapsedBattleTime = 0f;
@@ -169,6 +170,7 @@ namespace Manager
             Time.timeScale = 1f;
             _isGameRunning = false;
             _instance.units.Clear();
+            AttackSystem.ResetState();
             EvolutionaryMomentSystem.ExitEvolutionaryMoment();
             EncounterDirector.Reset();
             _elapsedBattleTime = 0f;
@@ -449,6 +451,7 @@ namespace Manager
             _awaitingSettlementChoice = false;
             _isBattlePreparing = false;
             _currentPreparingLevelPlan = null;
+            AttackSystem.ResetState();
             EvolutionaryMomentSystem.ExitEvolutionaryMoment();
             EncounterDirector.Reset();
             _elapsedBattleTime = 0f;

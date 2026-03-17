@@ -90,6 +90,19 @@ namespace Manager.AttackBehaviors
             }
         }
 
+        public void ResetState()
+        {
+            for (int i = EggDrops.Count - 1; i >= 0; i--)
+            {
+                if (EggDrops[i].visual != null)
+                {
+                    Object.Destroy(EggDrops[i].visual);
+                }
+            }
+
+            EggDrops.Clear();
+        }
+
         private static void SpawnEggDrops(Vector3 blowFlyPosition)
         {
             var spawnBase = new Vector3(blowFlyPosition.x, Mathf.Max(blowFlyPosition.y, GroundY) + EggDropHeight, 0f);

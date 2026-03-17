@@ -106,6 +106,18 @@ namespace Manager.AttackBehaviors
             }
         }
 
+        public void ResetState()
+        {
+            for (int i = SpiderProjectiles.Count - 1; i >= 0; i--)
+            {
+                if (SpiderProjectiles[i].visual != null)
+                {
+                    Object.Destroy(SpiderProjectiles[i].visual);
+                }
+            }
+
+            SpiderProjectiles.Clear();
+        }
 
         private static GameObject CreateProjectileVisual(Transform effectRoot, string texturePath, float size)
         {
