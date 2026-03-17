@@ -8,5 +8,6 @@ namespace Manager.AttackBehaviors
         void Handle(ref UnitRuntimeData attacker, AttackContext context);
         void Tick(AttackContext context);
         void Cleanup(AttackContext context);
+        void ResetState();
     }
 }
