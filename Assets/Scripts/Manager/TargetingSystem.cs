@@ -20,10 +20,24 @@ namespace Manager
                     continue;
                 }
 
-                if (unit.targetIndex >= 0 && unit.targetIndex < units.Count &&
-                    units[unit.targetIndex].alive && units[unit.targetIndex].isTargetable)
+                var hasValidTarget = unit.targetIndex >= 0 && unit.targetIndex < units.Count &&
+                                     units[unit.targetIndex].alive && units[unit.targetIndex].isTargetable;
+
+                // 可攻击单位仅在「当前目标还在攻击范围内」时保留旧目标，
+                // 否则要重新索敌，以便切换到新进入攻击范围的更近敌人。
+                if (hasValidTarget)
                 {
-                    continue;
+                    if (!unit.CanAttack)
+                    {
+                        continue;
+                    }
+
+                    var currentTarget = units[unit.targetIndex];
+                    var inAttackRange = (currentTarget.position - unit.position).sqrMagnitude <= unit.attackRange * unit.attackRange;
+                    if (inAttackRange)
+                    {
+                        continue;
+                    }
                 }
 
                 float minDist = float.MaxValue;
