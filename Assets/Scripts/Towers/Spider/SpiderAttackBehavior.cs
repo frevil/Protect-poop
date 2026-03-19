@@ -41,14 +41,9 @@ namespace Manager.AttackBehaviors
 
                 if (projectile.phase == SpiderProjectilePhase.Flying)
                 {
-                    if (context.IsValidTargetIndex(projectile.targetIndex) && context.Units[projectile.targetIndex].alive)
-                    {
-                        projectile.targetLastPosition = context.Units[projectile.targetIndex].position;
-                    }
-
                     projectile.position = Vector3.MoveTowards(
                         projectile.position,
-                        projectile.targetLastPosition,
+                        projectile.fixedTargetPosition,
                         ProjectileSpeed * context.Dt);
 
                     if (projectile.visual != null)
@@ -56,7 +51,7 @@ namespace Manager.AttackBehaviors
                         projectile.visual.transform.position = projectile.position;
                     }
 
-                    if (Vector3.Distance(projectile.position, projectile.targetLastPosition) <= 0.1f)
+                    if (Vector3.Distance(projectile.position, projectile.fixedTargetPosition) <= 0.1f)
                     {
                         ExplodeProjectile(context, ref projectile);
                     }
@@ -155,11 +150,10 @@ namespace Manager.AttackBehaviors
 
                 SpiderProjectiles.Add(new SpiderWebProjectileState
                 {
-                    targetIndex = spider.targetIndex,
                     attackerFaction = spider.faction,
                     damage = spider.attack,
                     position = spider.position,
-                    targetLastPosition = adjustedTargetPosition,
+                    fixedTargetPosition = adjustedTargetPosition,
                     visual = CreateProjectileVisual(context.EffectRoot, "Art/Images/net_flying", 0.28f),
                     phase = SpiderProjectilePhase.Flying
                 });
@@ -206,11 +200,10 @@ namespace Manager.AttackBehaviors
 
         private struct SpiderWebProjectileState
         {
-            public int targetIndex;
             public int attackerFaction;
             public float damage;
             public Vector3 position;
-            public Vector3 targetLastPosition;
+            public Vector3 fixedTargetPosition;
             public float expandTimer;
             public SpiderProjectilePhase phase;
             public GameObject visual;
