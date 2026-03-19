@@ -11,7 +11,6 @@ namespace Manager.AttackBehaviors
         private static readonly Vector2 EggDropHeightRange = new(0f, 0.12f);
         private const float EggFallSpeed = 3.2f;
         private const float EggHatchTime = 10f;
-        private static readonly Vector2 LandingYOffsetRange = new(-0.03f, 0.03f);
         private static readonly Vector2 HorizontalSpreadRange = new(-0.08f, 0.08f);
         private static readonly Vector2 SpawnJitterXRange = new(-0.01f, 0.01f);
         private static readonly Vector2 SpawnJitterYRange = new(-0.01f, 0.01f);
@@ -112,15 +111,16 @@ namespace Manager.AttackBehaviors
             var spawnBase = BattleViewBounds.EnsurePlaneZ(blowFlyPosition + new Vector3(0f, heightOffset, 0f));
 
             var horizontalSpread = SpawnPositionResolver.ResolveConfiguredOffset(HorizontalSpreadRange).x;
-            var landingYOffset = SpawnPositionResolver.ResolveConfiguredOffset(LandingYOffsetRange).y;
             var jitterX = SpawnPositionResolver.ResolveConfiguredOffset(SpawnJitterXRange).x;
             var jitterY = SpawnPositionResolver.ResolveConfiguredOffset(SpawnJitterYRange).y;
+            SpawnPositionResolver.TryGetPlayableBounds(out var playableMin, out var playableMax);
 
             for (int i = 0; i < EggsPerAttack; i++)
             {
                 var spreadX = Random.Range(-horizontalSpread, horizontalSpread);
+                var randomLandingY = Random.Range(playableMin.y, playableMax.y);
                 var landing = SpawnPositionResolver.ClampToPlayableArea(
-                    new Vector3(blowFlyPosition.x + spreadX, blowFlyPosition.y + landingYOffset, 0f));
+                    new Vector3(blowFlyPosition.x + spreadX, randomLandingY, 0f));
                 var spawnPosition = SpawnPositionResolver.ClampToPlayableArea(
                     spawnBase + new Vector3(Random.Range(-jitterX, jitterX), Random.Range(-jitterY, jitterY), 0f));
 

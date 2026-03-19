@@ -88,6 +88,11 @@ namespace Manager
             return position;
         }
 
+        public static bool TryGetPlayableBounds(out Vector2 min, out Vector2 max)
+        {
+            return TryGetActiveBounds(out min, out max);
+        }
+
         private static bool TryGetActiveBounds(out Vector2 min, out Vector2 max)
         {
             if (_hasLevelBounds)
