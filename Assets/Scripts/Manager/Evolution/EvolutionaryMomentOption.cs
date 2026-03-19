@@ -19,6 +19,7 @@ namespace Manager.Evolution
         public float attackIntervalDelta;
         public float attackRangeDelta;
         public float attackDelta;
+        public int projectileCountDelta;
 
         // skill config
         public string skillId;

@@ -17,6 +17,7 @@ namespace Towers
             attackInterval = 3f,
             attackIntervalScale = 1f,
             attackTimer = 0,
+            projectileCount = 1,
             moveSpeed = 0f,
             alive = true,
             isTargetable = true,
