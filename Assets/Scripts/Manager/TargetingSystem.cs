@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Core;
+using UnityEngine;
 
 namespace Manager
 {
@@ -7,6 +8,8 @@ namespace Manager
     {
         public static void UpdateTargets(List<UnitRuntimeData> units)
         {
+            BattleViewBounds.TryGetViewRectOnBattlePlane(out var viewCenter, out var viewHalfSize);
+
             for (int i = 0; i < units.Count; i++)
             {
                 var unit = units[i];
@@ -21,7 +24,8 @@ namespace Manager
                 }
 
                 var hasValidTarget = unit.targetIndex >= 0 && unit.targetIndex < units.Count &&
-                                     units[unit.targetIndex].alive && units[unit.targetIndex].isTargetable;
+                                     units[unit.targetIndex].alive && units[unit.targetIndex].isTargetable &&
+                                     IsInView(units[unit.targetIndex].position, viewCenter, viewHalfSize);
 
                 // 可攻击单位仅在「当前目标还在攻击范围内」时保留旧目标，
                 // 否则要重新索敌，以便切换到新进入攻击范围的更近敌人。
@@ -51,6 +55,7 @@ namespace Manager
                         if (!units[j].alive) continue;
                         if (units[j].unitType != "PlayerBase") continue;
                         if (!units[j].isTargetable) continue;
+                        if (!IsInView(units[j].position, viewCenter, viewHalfSize)) continue;
 
                         closest = j;
                         break;
@@ -64,6 +69,7 @@ namespace Manager
                         if (!units[j].alive) continue;
                         if (!units[j].isTargetable) continue;
                         if (units[j].faction == unit.faction) continue;
+                        if (!IsInView(units[j].position, viewCenter, viewHalfSize)) continue;
                         float dist = (units[j].position - unit.position).sqrMagnitude;
                         if (dist < minDist)
                         {
@@ -76,6 +82,14 @@ namespace Manager
                 unit.targetIndex = closest;
                 units[i] = unit;
             }
+        }
+
+        private static bool IsInView(Vector3 worldPosition, Vector2 center, Vector2 halfSize)
+        {
+            return worldPosition.x >= center.x - halfSize.x &&
+                   worldPosition.x <= center.x + halfSize.x &&
+                   worldPosition.y >= center.y - halfSize.y &&
+                   worldPosition.y <= center.y + halfSize.y;
         }
     }
 }
