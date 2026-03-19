@@ -209,6 +209,9 @@ namespace Manager
                 return;
             }
 
+            ResetCompanionStateForNewStage();
+            EvolutionaryMomentSystem.ResetForNewStage();
+
             if (!StartCurrentStage())
             {
                 EndGame(true);
@@ -441,6 +444,46 @@ namespace Manager
                 },
                 _ => throw new ArgumentOutOfRangeException(nameof(companionType), companionType, null)
             };
+        }
+
+        private static void ResetCompanionStateForNewStage()
+        {
+            for (var i = 0; i < _instance.units.Count; i++)
+            {
+                var unit = _instance.units[i];
+                if (!unit.alive) continue;
+                if (unit.faction != Faction.Player || unit.unitType == "PlayerBase") continue;
+                if (!TryGetBaseCompanionState(unit.unitType, out var baseCompanion)) continue;
+
+                unit.hp = baseCompanion.hp;
+                unit.maxHp = baseCompanion.maxHp;
+                unit.attack = baseCompanion.attack;
+                unit.attackRange = baseCompanion.attackRange;
+                unit.attackInterval = baseCompanion.attackInterval;
+                unit.attackIntervalScale = 1f;
+                unit.attackTimer = 0f;
+
+                _instance.units[i] = unit;
+            }
+        }
+
+        private static bool TryGetBaseCompanionState(string unitType, out UnitRuntimeData baseCompanion)
+        {
+            switch (unitType)
+            {
+                case "Frog":
+                    baseCompanion = CreateInitialCompanion(InitialCompanionType.Frog);
+                    return true;
+                case "Spider":
+                    baseCompanion = CreateInitialCompanion(InitialCompanionType.Spider);
+                    return true;
+                case "Lizard":
+                    baseCompanion = CreateInitialCompanion(InitialCompanionType.Lizard);
+                    return true;
+                default:
+                    baseCompanion = UnitRuntimeData.Empty;
+                    return false;
+            }
         }
 
         private static void EndGame(bool isVictory)

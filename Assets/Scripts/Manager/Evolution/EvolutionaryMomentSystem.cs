@@ -35,19 +35,22 @@ namespace Manager.Evolution
             EnsureLoaded();
 
             CurrentOptions.Clear();
-            OptionPool.Clear();
             SelectedOptionIds.Clear();
             OwnedCompanionUnitTypes.Clear();
             SkillRuntimes.Clear();
+            RebuildOptionPool();
 
-            for (var i = 0; i < AllOptions.Count; i++)
-            {
-                var option = AllOptions[i];
-                if (option.unlockedByDefault)
-                {
-                    OptionPool.Add(option.id);
-                }
-            }
+            ExitEvolutionaryMoment();
+        }
+
+        public static void ResetForNewStage()
+        {
+            EnsureLoaded();
+
+            CurrentOptions.Clear();
+            SelectedOptionIds.Clear();
+            SkillRuntimes.Clear();
+            RebuildOptionPool();
 
             ExitEvolutionaryMoment();
         }
@@ -341,6 +344,28 @@ namespace Manager.Evolution
                 durationTimer = 0f,
                 isActive = false
             });
+        }
+
+        private static void RebuildOptionPool()
+        {
+            OptionPool.Clear();
+            for (var i = 0; i < AllOptions.Count; i++)
+            {
+                var option = AllOptions[i];
+                if (string.IsNullOrEmpty(option.id)) continue;
+
+                if (option.unlockedByDefault)
+                {
+                    OptionPool.Add(option.id);
+                    continue;
+                }
+
+                if (!string.IsNullOrEmpty(option.requiredCompanionUnitType) &&
+                    OwnedCompanionUnitTypes.Contains(option.requiredCompanionUnitType))
+                {
+                    OptionPool.Add(option.id);
+                }
+            }
         }
     }
 }
