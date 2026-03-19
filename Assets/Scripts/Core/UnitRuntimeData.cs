@@ -22,6 +22,7 @@ namespace Core
         public float attackInterval;
         public float attackIntervalScale;
         public float attackTimer;
+        public int projectileCount;
 
         public int faction;        // 0 = Player, 1 = Enemy
         public int targetIndex;    // -1 表示无目标
@@ -54,6 +55,7 @@ namespace Core
             attackInterval = 1,
             attackIntervalScale = 1,
             attackTimer = 0,
+            projectileCount = 1,
             maxHp = 100,
             faction = 0,
             targetIndex = -1,

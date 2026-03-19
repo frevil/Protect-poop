@@ -399,6 +399,7 @@ namespace Manager
                     attackInterval = 1f,
                     attackIntervalScale = 1f,
                     attackTimer = 0,
+                    projectileCount = 1,
                     moveSpeed = 0f,
                     alive = true,
                     isTargetable = true,
@@ -417,6 +418,7 @@ namespace Manager
                     attackInterval = 3f,
                     attackIntervalScale = 1f,
                     attackTimer = 0,
+                    projectileCount = 1,
                     moveSpeed = 0f,
                     alive = true,
                     isTargetable = true,
@@ -435,6 +437,7 @@ namespace Manager
                     attackInterval = 2f,
                     attackIntervalScale = 1f,
                     attackTimer = 0,
+                    projectileCount = 1,
                     moveSpeed = 3f,
                     alive = true,
                     isTargetable = true,
@@ -462,6 +465,7 @@ namespace Manager
                 unit.attackInterval = baseCompanion.attackInterval;
                 unit.attackIntervalScale = 1f;
                 unit.attackTimer = 0f;
+                unit.projectileCount = baseCompanion.projectileCount;
 
                 _instance.units[i] = unit;
             }

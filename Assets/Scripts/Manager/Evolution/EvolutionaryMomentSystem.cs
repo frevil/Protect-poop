@@ -164,6 +164,7 @@ namespace Manager.Evolution
         public static void OnUnitSpawned(ref UnitRuntimeData unit)
         {
             unit.attackIntervalScale = unit.attackIntervalScale <= 0f ? 1f : unit.attackIntervalScale;
+            unit.projectileCount = unit.projectileCount < 1 ? 1 : unit.projectileCount;
 
             foreach (var optionId in SelectedOptionIds)
             {
@@ -304,6 +305,8 @@ namespace Manager.Evolution
 
             unit.attackRange += option.attackRangeDelta;
             unit.attack += option.attackDelta;
+            unit.projectileCount += option.projectileCountDelta;
+            unit.projectileCount = unit.projectileCount < 1 ? 1 : unit.projectileCount;
         }
 
         private static int FindUnitIndexById(List<UnitRuntimeData> units, int unitId)

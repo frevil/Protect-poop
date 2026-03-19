@@ -23,16 +23,7 @@ namespace Manager.AttackBehaviors
             var inRange = Vector3.Distance(target.position, spider.position) <= spider.attackRange;
             if (!inRange || spider.attackTimer < EvolutionaryMomentSystem.GetEffectiveAttackInterval(spider)) return;
 
-            SpiderProjectiles.Add(new SpiderWebProjectileState
-            {
-                targetIndex = spider.targetIndex,
-                attackerFaction = spider.faction,
-                damage = spider.attack,
-                position = spider.position,
-                targetLastPosition = target.position,
-                visual = CreateProjectileVisual(context.EffectRoot, "Art/Images/net_flying", 0.28f),
-                phase = SpiderProjectilePhase.Flying
-            });
+            SpawnWebVolley(spider, target.position, context);
 
             spider.attackTimer = 0;
         }
@@ -142,6 +133,37 @@ namespace Manager.AttackBehaviors
 
             meshRenderer.sortingOrder = 12;
             return go;
+        }
+
+        private static void SpawnWebVolley(UnitRuntimeData spider, Vector3 targetPosition, AttackContext context)
+        {
+            var projectileCount = Mathf.Clamp(spider.projectileCount, 1, 5);
+            var spreadStep = 8f;
+            var totalSpread = spreadStep * (projectileCount - 1);
+            var startAngle = -totalSpread * 0.5f;
+            var toTarget = (targetPosition - spider.position);
+            if (toTarget.sqrMagnitude < 0.0001f)
+            {
+                toTarget = Vector3.right;
+            }
+
+            for (var i = 0; i < projectileCount; i++)
+            {
+                var angle = startAngle + spreadStep * i;
+                var rotatedDir = Quaternion.Euler(0f, 0f, angle) * toTarget.normalized;
+                var adjustedTargetPosition = spider.position + rotatedDir * toTarget.magnitude;
+
+                SpiderProjectiles.Add(new SpiderWebProjectileState
+                {
+                    targetIndex = spider.targetIndex,
+                    attackerFaction = spider.faction,
+                    damage = spider.attack,
+                    position = spider.position,
+                    targetLastPosition = adjustedTargetPosition,
+                    visual = CreateProjectileVisual(context.EffectRoot, "Art/Images/net_flying", 0.28f),
+                    phase = SpiderProjectilePhase.Flying
+                });
+            }
         }
 
         private static void ExplodeProjectile(AttackContext context, ref SpiderWebProjectileState projectile)
