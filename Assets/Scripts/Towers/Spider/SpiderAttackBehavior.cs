@@ -154,7 +154,7 @@ namespace Manager.AttackBehaviors
                     damage = spider.attack,
                     position = spider.position,
                     fixedTargetPosition = adjustedTargetPosition,
-                    visual = CreateProjectileVisual(context.EffectRoot, "Art/Images/net_flying", 0.28f),
+                    visual = CreateProjectileVisual(context.EffectRoot, "UnitVisuals/net_flying", 0.28f),
                     phase = SpiderProjectilePhase.Flying
                 });
             }
@@ -170,7 +170,7 @@ namespace Manager.AttackBehaviors
                 var renderer = projectile.visual.GetComponent<MeshRenderer>();
                 if (renderer != null)
                 {
-                    var webTex = Resources.Load<Texture2D>("Art/Images/net");
+                    var webTex = Resources.Load<Texture2D>("UnitVisuals/net");
                     if (webTex != null)
                     {
                         renderer.material.mainTexture = webTex;

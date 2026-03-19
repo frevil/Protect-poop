@@ -27,7 +27,7 @@
       },
       "positionRandomRange": {
         "x": 0.225,
-        "y": 0.3556,
+        "y": 0,
         "z": 0
       },
       "enemyTypeId": "Fly",

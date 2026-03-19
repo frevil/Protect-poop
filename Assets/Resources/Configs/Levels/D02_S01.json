@@ -15,8 +15,8 @@
         "z": 0
       },
       "enemyTypeId": "Mosquito",
-      "count": 11,
-      "interval": 1.04
+      "count": 50,
+      "interval": 0.44
     },
     {
       "time": 4.7,
@@ -31,8 +31,8 @@
         "z": 0
       },
       "enemyTypeId": "Fly",
-      "count": 3,
-      "interval": 1.9600000000000002
+      "count": 60,
+      "interval": 0.3
     }
   ],
   "useSpawnBounds": true,

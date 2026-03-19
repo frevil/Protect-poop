@@ -31,8 +31,24 @@
         "z": 0
       },
       "enemyTypeId": "Fly",
-      "count": 5,
-      "interval": 1.9600000000000002
+      "count": 50,
+      "interval": 0.5
+    },
+    {
+      "time": 3.1,
+      "position": {
+        "x": -0.3,
+        "y": 0.3333,
+        "z": 0
+      },
+      "positionRandomRange": {
+        "x": 0.225,
+        "y": 0.3556,
+        "z": 0
+      },
+      "enemyTypeId": "Fly",
+      "count": 50,
+      "interval": 0.5
     }
   ],
   "useSpawnBounds": true,

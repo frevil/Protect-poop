@@ -33,6 +33,22 @@
       "enemyTypeId": "Fly",
       "count": 2,
       "interval": 2.08
+    },
+    {
+      "time": 0,
+      "position": {
+        "x": 1.5,
+        "y": 0,
+        "z": 0
+      },
+      "positionRandomRange": {
+        "x": 0.225,
+        "y": 0.0,
+        "z": 0
+      },
+      "enemyTypeId": "BlowFly",
+      "count": 10,
+      "interval": 2
     }
   ],
   "useSpawnBounds": true,

@@ -49,7 +49,7 @@
       "skillId": "frog_frenzy_1",
       "skillCooldown": 10,
       "skillDuration": 3,
-      "skillAttackIntervalScale": 0.4,
+      "skillAttackIntervalScale": 0.1,
       "unlockedByDefault": false,
       "requiredCompanionUnitType": "",
       "nextOptionIds": []

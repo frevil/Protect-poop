@@ -49,6 +49,22 @@
       "enemyTypeId": "Mosquito",
       "count": 7,
       "interval": 0.75
+    },
+    {
+      "time": 0,
+      "position": {
+        "x": 1.4375,
+        "y": -0.1111,
+        "z": 0
+      },
+      "positionRandomRange": {
+        "x": 0.275,
+        "y": 0.4444,
+        "z": 0
+      },
+      "enemyTypeId": "BlowFly",
+      "count": 1,
+      "interval": 0.75
     }
   ],
   "useSpawnBounds": true,

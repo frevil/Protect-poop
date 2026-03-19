@@ -46,9 +46,9 @@
         "y": 0.4444,
         "z": 0
       },
-      "enemyTypeId": "Mosquito",
-      "count": 7,
-      "interval": 0.75
+      "enemyTypeId": "BlowFly",
+      "count": 2,
+      "interval": 3
     }
   ],
   "useSpawnBounds": true,
