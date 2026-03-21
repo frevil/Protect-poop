@@ -8,6 +8,7 @@ namespace Manager.AttackBehaviors
     public sealed class SpiderAttackBehavior : IAttackBehavior
     {
         private const float ProjectileSpeed = 18f;
+        private const float ProjectileHitRadius = 0.35f;
         private const float WebRadius = 2.2f;
         private const float WebExpandDuration = 0.22f;
 
@@ -41,17 +42,16 @@ namespace Manager.AttackBehaviors
 
                 if (projectile.phase == SpiderProjectilePhase.Flying)
                 {
-                    projectile.position = Vector3.MoveTowards(
-                        projectile.position,
-                        projectile.fixedTargetPosition,
-                        ProjectileSpeed * context.Dt);
+                    var stepDistance = ProjectileSpeed * context.Dt;
+                    projectile.position += projectile.direction * stepDistance;
+                    projectile.remainingDistance -= stepDistance;
 
                     if (projectile.visual != null)
                     {
                         projectile.visual.transform.position = projectile.position;
                     }
 
-                    if (Vector3.Distance(projectile.position, projectile.fixedTargetPosition) <= 0.1f)
+                    if (ShouldExplodeDuringFlight(context, projectile) || projectile.remainingDistance <= 0f)
                     {
                         ExplodeProjectile(context, ref projectile);
                     }
@@ -146,18 +146,33 @@ namespace Manager.AttackBehaviors
             {
                 var angle = startAngle + spreadStep * i;
                 var rotatedDir = Quaternion.Euler(0f, 0f, angle) * toTarget.normalized;
-                var adjustedTargetPosition = spider.position + rotatedDir * toTarget.magnitude;
-
                 SpiderProjectiles.Add(new SpiderWebProjectileState
                 {
                     attackerFaction = spider.faction,
                     damage = spider.attack,
                     position = spider.position,
-                    fixedTargetPosition = adjustedTargetPosition,
+                    direction = rotatedDir,
+                    remainingDistance = spider.attackRange,
                     visual = CreateProjectileVisual(context.EffectRoot, "UnitVisuals/net_flying", 0.28f),
                     phase = SpiderProjectilePhase.Flying
                 });
             }
+        }
+
+        private static bool ShouldExplodeDuringFlight(AttackContext context, SpiderWebProjectileState projectile)
+        {
+            for (int i = 0; i < context.Units.Count; i++)
+            {
+                var enemy = context.Units[i];
+                if (!enemy.alive || enemy.faction == projectile.attackerFaction) continue;
+
+                if (Vector3.Distance(enemy.position, projectile.position) <= ProjectileHitRadius)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static void ExplodeProjectile(AttackContext context, ref SpiderWebProjectileState projectile)
@@ -203,7 +218,8 @@ namespace Manager.AttackBehaviors
             public int attackerFaction;
             public float damage;
             public Vector3 position;
-            public Vector3 fixedTargetPosition;
+            public Vector3 direction;
+            public float remainingDistance;
             public float expandTimer;
             public SpiderProjectilePhase phase;
             public GameObject visual;
