@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Core;
+using Manager.Evolution;
 using Scripts.Core;
 using UnityEngine;
 
@@ -21,7 +22,8 @@ namespace Manager
                 Debug.Log($"_{unit.name}_噶了");
                 if (unit.faction == Faction.Enemy)
                 {
-                    LevelSystem.GotExp(unit.killExp);
+                    LevelSystem.GotExp(EvolutionaryMomentSystem.GetModifiedKillExp(unit.killExp));
+                    EvolutionaryMomentSystem.OnEnemyKilled(units, unit);
                 }
             }
         }

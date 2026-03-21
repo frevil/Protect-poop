@@ -20,6 +20,19 @@ namespace Manager.Evolution
         public float attackRangeDelta;
         public float attackDelta;
         public int projectileCountDelta;
+        public float expGainMultiplierDelta;
+        public float nutritionDropChanceOnKill;
+        public float healOnKill;
+        public int killCountThreshold;
+        public float permanentAttackSpeedGainPerThreshold;
+        public float slowPercent;
+        public float slowDuration;
+        public float poisonDamagePerSecond;
+        public float poisonDuration;
+        public bool poisonDamageDoublesOnSlowed;
+        public bool poisonSpreadOnDeath;
+        public float burstChance;
+        public int burstProjectileCount;
 
         // skill config
         public string skillId;

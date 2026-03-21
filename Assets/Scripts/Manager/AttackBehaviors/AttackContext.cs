@@ -7,13 +7,13 @@ namespace Manager.AttackBehaviors
 {
     public sealed class AttackContext
     {
-        private readonly Action<int, float, string> _damageApplier;
+        private readonly Action<int, float, string, int> _damageApplier;
 
         public AttackContext(
             List<UnitRuntimeData> units,
             float dt,
             Transform effectRoot,
-            Action<int, float, string> damageApplier)
+            Action<int, float, string, int> damageApplier)
         {
             Units = units;
             Dt = dt;
@@ -26,9 +26,9 @@ namespace Manager.AttackBehaviors
         public Transform EffectRoot { get; }
 
 
-        public void ApplyDamage(int targetIndex, float damage, string attackerName)
+        public void ApplyDamage(int targetIndex, float damage, string attackerName, int attackerUnitId)
         {
-            _damageApplier(targetIndex, damage, attackerName);
+            _damageApplier(targetIndex, damage, attackerName, attackerUnitId);
         }
 
         public bool IsValidTargetIndex(int targetIndex)

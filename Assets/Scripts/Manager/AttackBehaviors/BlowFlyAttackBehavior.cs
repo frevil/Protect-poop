@@ -31,7 +31,7 @@ namespace Manager.AttackBehaviors
             var inRange = Vector3.Distance(target.position, blowFly.position) <= blowFly.attackRange;
             if (!inRange || blowFly.attackTimer < EvolutionaryMomentSystem.GetEffectiveAttackInterval(blowFly)) return;
 
-            context.ApplyDamage(blowFly.targetIndex, blowFly.attack, blowFly.name);
+            context.ApplyDamage(blowFly.targetIndex, blowFly.attack, blowFly.name, blowFly.id);
             SpawnEggDrops(blowFly.position);
             blowFly.attackTimer = 0;
         }
