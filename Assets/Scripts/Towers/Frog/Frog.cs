@@ -15,6 +15,7 @@ namespace Towers
             attack = 10,
             attackRange = 5f,
             attackInterval = 1f,
+            attackSpeed = 1f,
             attackIntervalScale = 1f,
             attackTimer = 0,
             moveSpeed = 0f,
