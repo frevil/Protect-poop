@@ -460,12 +460,9 @@ namespace Manager
 
                 unit.hp = baseCompanion.hp;
                 unit.maxHp = baseCompanion.maxHp;
-                unit.attack = baseCompanion.attack;
-                unit.attackRange = baseCompanion.attackRange;
-                unit.attackInterval = baseCompanion.attackInterval;
+                // 跨关卡继承进化后的成长：保留攻击、射程、攻速与弹道数量等常驻属性。
                 unit.attackIntervalScale = 1f;
                 unit.attackTimer = 0f;
-                unit.projectileCount = baseCompanion.projectileCount;
 
                 _instance.units[i] = unit;
             }
