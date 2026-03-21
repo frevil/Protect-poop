@@ -185,8 +185,7 @@ namespace Manager
             if (!_isGameRunning || _awaitingSettlementChoice) return;
 
             _awaitingSettlementChoice = true;
-            _nutrition += 1;
-            NutritionChanged?.Invoke(_nutrition);
+            GrantNutrition(1);
 
             var totalInTier = GetCurrentTierLevels().Count;
             StageSettled?.Invoke(new StageSettlementInfo(
@@ -240,6 +239,13 @@ namespace Manager
             SpawnUnit(CreatePurchasedCompanion(companionType));
             ContinueAfterSettlement();
             return true;
+        }
+
+        public static void GrantNutrition(int amount)
+        {
+            if (amount <= 0) return;
+            _nutrition += amount;
+            NutritionChanged?.Invoke(_nutrition);
         }
 
         public static List<UnitRuntimeData> GetUnits()

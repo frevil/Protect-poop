@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Core;
+using Manager.Evolution;
 using Scripts.Core;
 
 namespace Manager
@@ -19,7 +20,8 @@ namespace Manager
 
                 var target = units[unit.targetIndex];
                 var dir = (target.position - unit.position).normalized;
-                unit.position += dir * unit.moveSpeed * dt;
+                var speedScale = EvolutionaryMomentSystem.GetMovementSpeedScale(unit);
+                unit.position += dir * unit.moveSpeed * speedScale * dt;
                 units[i] = unit;
             }
         }

@@ -132,7 +132,10 @@ namespace Manager.AttackBehaviors
 
         private static void SpawnWebVolley(UnitRuntimeData spider, Vector3 targetPosition, AttackContext context)
         {
-            var projectileCount = Mathf.Clamp(spider.projectileCount, 1, 5);
+            var burstProjectileCount = EvolutionaryMomentSystem.GetSpiderBurstProjectileCount();
+            var projectileCount = burstProjectileCount > 0
+                ? burstProjectileCount
+                : Mathf.Clamp(spider.projectileCount, 1, 5);
             var spreadStep = 8f;
             var totalSpread = spreadStep * (projectileCount - 1);
             var startAngle = -totalSpread * 0.5f;
@@ -149,6 +152,7 @@ namespace Manager.AttackBehaviors
                 SpiderProjectiles.Add(new SpiderWebProjectileState
                 {
                     attackerFaction = spider.faction,
+                    attackerUnitId = spider.id,
                     damage = spider.attack,
                     position = spider.position,
                     direction = rotatedDir,
@@ -201,7 +205,9 @@ namespace Manager.AttackBehaviors
                 if (Vector3.Distance(enemy.position, projectile.position) <= WebRadius)
                 {
                     enemy.hp -= projectile.damage;
+                    enemy.lastDamagerUnitId = projectile.attackerUnitId;
                     context.Units[i] = enemy;
+                    EvolutionaryMomentSystem.ApplySpiderWebHit(context.Units, i, projectile.attackerUnitId);
                 }
             }
         }
@@ -216,6 +222,7 @@ namespace Manager.AttackBehaviors
         private struct SpiderWebProjectileState
         {
             public int attackerFaction;
+            public int attackerUnitId;
             public float damage;
             public Vector3 position;
             public Vector3 direction;

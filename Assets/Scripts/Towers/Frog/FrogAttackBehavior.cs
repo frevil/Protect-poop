@@ -78,7 +78,7 @@ namespace Manager.AttackBehaviors
             {
                 if (state.hasCapturedTarget)
                 {
-                    context.ApplyDamage(state.targetIndex, frog.attack, frog.name);
+                    context.ApplyDamage(state.targetIndex, frog.attack, frog.name, frog.id);
                 }
 
                 FinishFrogTongue(frog.id, context.Units);

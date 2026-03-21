@@ -30,6 +30,7 @@ namespace Core
         
         public int exp;    // 经验值
         public int killExp;    // 被击杀时掉落的经验值
+        public int lastDamagerUnitId;
 
         public bool alive;
         public bool isTargetable;
@@ -43,7 +44,8 @@ namespace Core
 
         public static UnitRuntimeData Empty = new()
         {
-            id = -1
+            id = -1,
+            lastDamagerUnitId = -1
         };
         public static UnitRuntimeData Player = new()
         {
@@ -64,7 +66,8 @@ namespace Core
             alive = true,
             isTargetable = true,
             controlState = UnitControlState.Normal,
-            position = new Vector3(-7.5f,-3f,0)
+            position = new Vector3(-7.5f,-3f,0),
+            lastDamagerUnitId = -1
         };
 
         public bool IsEmpty()

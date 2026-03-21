@@ -20,7 +20,7 @@ namespace Manager
                 units,
                 dt,
                 _effectRoot,
-                (targetIndex, damage, attackerName) => ApplyDamage(units, targetIndex, damage, attackerName));
+                (targetIndex, damage, attackerName, attackerUnitId) => ApplyDamage(units, targetIndex, damage, attackerName, attackerUnitId));
 
             for (int i = 0; i < units.Count; i++)
             {
@@ -49,7 +49,7 @@ namespace Manager
                 if (Vector3.Distance(target.position, unit.position) < unit.attackRange &&
                     unit.attackTimer >= EvolutionaryMomentSystem.GetEffectiveAttackInterval(unit))
                 {
-                    ApplyDamage(units, unit.targetIndex, unit.attack, unit.name);
+                    ApplyDamage(units, unit.targetIndex, unit.attack, unit.name, unit.id);
                     unit.attackTimer = 0;
                 }
 
@@ -91,7 +91,7 @@ namespace Manager
             }
         }
 
-        private static void ApplyDamage(List<UnitRuntimeData> units, int targetIndex, float damage, string attackerName)
+        private static void ApplyDamage(List<UnitRuntimeData> units, int targetIndex, float damage, string attackerName, int attackerUnitId)
         {
             if (targetIndex < 0 || targetIndex >= units.Count) return;
 
@@ -99,6 +99,7 @@ namespace Manager
             if (!target.alive) return;
 
             target.hp -= damage;
+            target.lastDamagerUnitId = attackerUnitId;
             Debug.Log($"{attackerName}攻击了{target.name},造成了{damage}点伤害");
             units[targetIndex] = target;
         }
