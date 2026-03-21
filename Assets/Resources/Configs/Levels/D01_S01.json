@@ -47,8 +47,8 @@
         "z": 0
       },
       "enemyTypeId": "BlowFly",
-      "count": 10,
-      "interval": 2
+      "count": 3,
+      "interval": 5
     }
   ],
   "useSpawnBounds": true,

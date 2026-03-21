@@ -13,7 +13,7 @@
       "skillAttackIntervalScale": 0.6,
       "unlockedByDefault": false,
       "requiredCompanionUnitType": "Frog",
-      "nextOptionIds": ["frog_robust_tongue_2", "frog_chew_1", "frog_digest_1", "frog_proficient_worker_1"]
+      "nextOptionIds": ["frog_robust_tongue_2"]
     },
     {
       "id": "frog_robust_tongue_2",
@@ -55,7 +55,7 @@
       "skillId": "frog_frenzy_1",
       "skillCooldown": 10,
       "skillDuration": 5,
-      "skillAttackIntervalScale": 0.1,
+      "skillAttackIntervalScale": 0.4,
       "unlockedByDefault": false,
       "requiredCompanionUnitType": "",
       "nextOptionIds": []
@@ -71,7 +71,7 @@
       "expGainMultiplierDelta": 0.3,
       "nutritionDropChanceOnKill": 0.01,
       "unlockedByDefault": false,
-      "requiredCompanionUnitType": "",
+      "requiredCompanionUnitType": "Frog",
       "nextOptionIds": ["frog_chew_2"]
     },
     {
@@ -125,7 +125,7 @@
       "targetUnitType": "Frog",
       "healOnKill": 1,
       "unlockedByDefault": false,
-      "requiredCompanionUnitType": "",
+      "requiredCompanionUnitType": "Frog",
       "nextOptionIds": ["frog_digest_2"]
     },
     {
@@ -174,7 +174,7 @@
       "killCountThreshold": 100,
       "permanentAttackSpeedGainPerThreshold": 0.03,
       "unlockedByDefault": false,
-      "requiredCompanionUnitType": "",
+      "requiredCompanionUnitType": "Frog",
       "nextOptionIds": []
     },
     {
@@ -188,7 +188,7 @@
       "slowDuration": 5,
       "unlockedByDefault": false,
       "requiredCompanionUnitType": "Spider",
-      "nextOptionIds": ["spider_control_2", "spider_poison_1", "spider_burst_1"]
+      "nextOptionIds": ["spider_control_2"]
     },
     {
       "id": "spider_control_2",
@@ -239,7 +239,7 @@
       "poisonDamagePerSecond": 1,
       "poisonDuration": 5,
       "unlockedByDefault": false,
-      "requiredCompanionUnitType": "",
+      "requiredCompanionUnitType": "Spider",
       "nextOptionIds": ["spider_poison_2"]
     },
     {
@@ -315,7 +315,7 @@
       "burstChance": 0.4,
       "burstProjectileCount": 2,
       "unlockedByDefault": false,
-      "requiredCompanionUnitType": "",
+      "requiredCompanionUnitType": "Spider",
       "nextOptionIds": ["spider_burst_2"]
     },
     {

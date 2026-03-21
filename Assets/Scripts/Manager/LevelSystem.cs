@@ -34,7 +34,8 @@ namespace Manager
 
         private static void LevelUp()
         {
-            _expNeed *= 2;
+            var levelM1 = _level - 1;
+            _expNeed = 10 + 6 * levelM1 + 3 * levelM1 * levelM1;
             _level += 1;
             Debug.Log($"升级了，当前等级{_level}");
 
