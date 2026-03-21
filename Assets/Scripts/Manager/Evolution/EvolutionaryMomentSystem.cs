@@ -363,6 +363,21 @@ namespace Manager.Evolution
             return value < 0.05f ? 0.05f : value;
         }
 
+        public static int GetSkillRuntimesForOwner(int ownerUnitId, List<EvolutionSkillRuntime> buffer)
+        {
+            if (buffer == null) return 0;
+            buffer.Clear();
+
+            for (var i = 0; i < SkillRuntimes.Count; i++)
+            {
+                var runtime = SkillRuntimes[i];
+                if (runtime.ownerUnitId != ownerUnitId) continue;
+                buffer.Add(runtime);
+            }
+
+            return buffer.Count;
+        }
+
         private static void EnsureLoaded()
         {
             if (_loaded) return;
