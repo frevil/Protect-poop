@@ -48,9 +48,7 @@ namespace Manager.Evolution
             EnsureLoaded();
 
             CurrentOptions.Clear();
-            SelectedOptionIds.Clear();
-            SkillRuntimes.Clear();
-            RebuildOptionPool();
+            // 跨关卡继承进化收益：仅重置当前面板状态，不清空已获得的天赋/技能与解锁池。
 
             ExitEvolutionaryMoment();
         }
