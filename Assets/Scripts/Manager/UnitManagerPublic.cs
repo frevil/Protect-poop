@@ -251,6 +251,7 @@ namespace Manager
         public static int SpawnUnit(UnitRuntimeData data)
         {
             EnsureInstance();
+            data.attackSpeed = data.attackSpeed <= 0f ? 1f : data.attackSpeed;
             data.attackIntervalScale = 1f;
             if (!data.alive)
             {
@@ -397,6 +398,7 @@ namespace Manager
                     attack = 10,
                     attackRange = 5f,
                     attackInterval = 1f,
+                    attackSpeed = 1f,
                     attackIntervalScale = 1f,
                     attackTimer = 0,
                     projectileCount = 1,
@@ -416,6 +418,7 @@ namespace Manager
                     attack = 5,
                     attackRange = 25f,
                     attackInterval = 3f,
+                    attackSpeed = 1f,
                     attackIntervalScale = 1f,
                     attackTimer = 0,
                     projectileCount = 1,
@@ -435,6 +438,7 @@ namespace Manager
                     attack = 15,
                     attackRange = 3f,
                     attackInterval = 2f,
+                    attackSpeed = 1f,
                     attackIntervalScale = 1f,
                     attackTimer = 0,
                     projectileCount = 1,

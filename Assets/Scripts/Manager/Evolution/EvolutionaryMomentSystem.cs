@@ -243,8 +243,9 @@ namespace Manager.Evolution
         public static float GetEffectiveAttackInterval(UnitRuntimeData unit)
         {
             var baseInterval = unit.attackInterval < 0.1f ? 0.1f : unit.attackInterval;
+            var attackSpeed = unit.attackSpeed <= 0f ? 1f : unit.attackSpeed;
             var scale = unit.attackIntervalScale <= 0f ? 1f : unit.attackIntervalScale;
-            var value = baseInterval * scale;
+            var value = baseInterval / attackSpeed * scale;
             return value < 0.05f ? 0.05f : value;
         }
 

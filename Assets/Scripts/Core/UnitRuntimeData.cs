@@ -20,6 +20,7 @@ namespace Core
         public float attackRange;
 
         public float attackInterval;
+        public float attackSpeed;
         public float attackIntervalScale;
         public float attackTimer;
         public int projectileCount;
@@ -53,6 +54,7 @@ namespace Core
             attack = 0,
             attackRange = 0,
             attackInterval = 1,
+            attackSpeed = 1,
             attackIntervalScale = 1,
             attackTimer = 0,
             projectileCount = 1,
