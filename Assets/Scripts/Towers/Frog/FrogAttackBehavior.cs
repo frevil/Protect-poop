@@ -7,7 +7,7 @@ namespace Manager.AttackBehaviors
 {
     public sealed class FrogAttackBehavior : IAttackBehavior
     {
-        private const float TongueSpeed = 16f;
+        private const float BaseTongueSpeed = 16f;
         private const float TongueHitDistance = 0.25f;
 
         private static readonly Dictionary<int, FrogTongueState> FrogTongueStates = new();
@@ -52,7 +52,8 @@ namespace Manager.AttackBehaviors
                 ? targetUnit.position
                 : frog.position;
 
-            state.tongueTip = Vector3.MoveTowards(state.tongueTip, tipDestination, TongueSpeed * context.Dt);
+            var tongueSpeed = GetTongueSpeedByAttackInterval(frog);
+            state.tongueTip = Vector3.MoveTowards(state.tongueTip, tipDestination, tongueSpeed * context.Dt);
 
             if (state.phase == FrogTonguePhase.Extending && targetUnit.alive &&
                 Vector3.Distance(state.tongueTip, targetUnit.position) <= TongueHitDistance)
@@ -175,6 +176,14 @@ namespace Manager.AttackBehaviors
 
             state.lineRenderer.SetPosition(0, frogPosition);
             state.lineRenderer.SetPosition(1, state.tongueTip);
+        }
+
+        private static float GetTongueSpeedByAttackInterval(UnitRuntimeData frog)
+        {
+            var baseAttackInterval = frog.attackInterval < 0.1f ? 0.1f : frog.attackInterval;
+            var effectiveAttackInterval = EvolutionaryMomentSystem.GetEffectiveAttackInterval(frog);
+            var intervalRatio = baseAttackInterval / effectiveAttackInterval;
+            return BaseTongueSpeed * intervalRatio;
         }
 
         private enum FrogTonguePhase
