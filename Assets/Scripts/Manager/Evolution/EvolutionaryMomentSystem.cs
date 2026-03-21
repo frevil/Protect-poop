@@ -343,7 +343,8 @@ namespace Manager.Evolution
                 cooldown = option.skillCooldown,
                 duration = option.skillDuration,
                 attackIntervalScale = option.skillAttackIntervalScale <= 0f ? 1f : option.skillAttackIntervalScale,
-                cooldownTimer = 0f,
+                // 新获得技能时立刻可触发一次：让下一帧 Tick 直接进入激活态。
+                cooldownTimer = option.skillCooldown,
                 durationTimer = 0f,
                 isActive = false
             });
