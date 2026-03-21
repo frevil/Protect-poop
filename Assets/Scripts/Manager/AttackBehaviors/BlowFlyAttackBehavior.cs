@@ -14,6 +14,7 @@ namespace Manager.AttackBehaviors
         private static readonly Vector2 HorizontalSpreadRange = new(-0.08f, 0.08f);
         private static readonly Vector2 SpawnJitterXRange = new(-0.01f, 0.01f);
         private static readonly Vector2 SpawnJitterYRange = new(-0.01f, 0.01f);
+        private static readonly Vector2 GroundNormalizedYRange = new(0f, 0.25f);
         private const int EggsPerAttack = 20;
 
         private static readonly List<EggDropState> EggDrops = new();
@@ -114,11 +115,17 @@ namespace Manager.AttackBehaviors
             var jitterX = SpawnPositionResolver.ResolveConfiguredOffset(SpawnJitterXRange).x;
             var jitterY = SpawnPositionResolver.ResolveConfiguredOffset(SpawnJitterYRange).y;
             SpawnPositionResolver.TryGetPlayableBounds(out var playableMin, out var playableMax);
+            var groundMinY = BattleViewBounds.NormalizedToWorld(new Vector3(0f, GroundNormalizedYRange.x, 0f)).y;
+            var groundMaxY = BattleViewBounds.NormalizedToWorld(new Vector3(0f, GroundNormalizedYRange.y, 0f)).y;
+            var clampedGroundMinY = Mathf.Clamp(groundMinY, playableMin.y, playableMax.y);
+            var clampedGroundMaxY = Mathf.Clamp(groundMaxY, playableMin.y, playableMax.y);
+            var landingMinY = Mathf.Min(clampedGroundMinY, clampedGroundMaxY);
+            var landingMaxY = Mathf.Max(clampedGroundMinY, clampedGroundMaxY);
 
             for (int i = 0; i < EggsPerAttack; i++)
             {
                 var spreadX = Random.Range(-horizontalSpread, horizontalSpread);
-                var randomLandingY = Random.Range(playableMin.y, playableMax.y);
+                var randomLandingY = Random.Range(landingMinY, landingMaxY);
                 var landing = SpawnPositionResolver.ClampToPlayableArea(
                     new Vector3(blowFlyPosition.x + spreadX, randomLandingY, 0f));
                 var spawnPosition = SpawnPositionResolver.ClampToPlayableArea(
