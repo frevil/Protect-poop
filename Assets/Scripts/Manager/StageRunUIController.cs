@@ -1,5 +1,9 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
+using Core;
+using Manager.Evolution;
+using Scripts.Core;
 
 namespace Manager
 {
@@ -12,6 +16,15 @@ namespace Manager
         private Text _settlementText;
         private GameObject _preparationPanel;
         private Text _preparationText;
+        private GameObject _statusPanel;
+        private GameObject _detailPanel;
+        private Text _detailTitle;
+        private Text _detailContent;
+        private readonly Dictionary<int, UnitStatusView> _statusViewsByUnitId = new();
+        private readonly Dictionary<string, Sprite> _portraitSpriteCacheByType = new();
+        private readonly Dictionary<string, PortraitVisualConfig> _visualConfigByType = new();
+        private readonly List<EvolutionaryMomentOption> _selectedOptionBuffer = new();
+        private readonly List<EvolutionSkillRuntime> _skillRuntimeBuffer = new();
 
         private int _gridColumns = 15;
         private int _gridRows = 8;
@@ -83,6 +96,7 @@ namespace Manager
             var root = CreateUIObject("Root", _canvas.transform);
             StretchToParent(root.GetComponent<RectTransform>());
 
+            LoadVisualConfigs();
             var hudPanel = CreateUIObject("HudPanel", root.transform);
             var hudImage = hudPanel.AddComponent<Image>();
             hudImage.color = new Color(0f, 0f, 0f, 0.45f);
@@ -102,6 +116,10 @@ namespace Manager
 
             _nutritionText = CreateHUDText(hudPanel.transform, font, 26);
             _stageText = CreateHUDText(hudPanel.transform, font, 22);
+
+            _statusPanel = BuildStatusPanel(root.transform);
+            _detailPanel = BuildDetailPanel(root.transform, font);
+            _detailPanel.SetActive(false);
 
             _settlementPanel = BuildSettlementPanel(root.transform, font);
             _settlementPanel.SetActive(false);
@@ -265,6 +283,7 @@ namespace Manager
         {
             _settlementPanel.SetActive(false);
             _preparationPanel.SetActive(false);
+            _detailPanel.SetActive(false);
             Time.timeScale = 1f;
         }
 
@@ -291,6 +310,353 @@ namespace Manager
         private void RefreshRunningState()
         {
             _canvas.enabled = UnitManager.IsGameRunning() || UnitManager.IsBattlePreparing() || _settlementPanel.activeSelf;
+            RefreshStatusPanel();
+        }
+
+        private void RefreshStatusPanel()
+        {
+            if (_statusPanel == null) return;
+            if (!_canvas.enabled)
+            {
+                _statusPanel.SetActive(false);
+                return;
+            }
+
+            _statusPanel.SetActive(true);
+            var units = UnitManager.GetUnits();
+            var playerUnits = new List<UnitRuntimeData>();
+            for (var i = 0; i < units.Count; i++)
+            {
+                var unit = units[i];
+                if (!unit.alive || unit.faction != Faction.Player) continue;
+                playerUnits.Add(unit);
+            }
+
+            playerUnits.Sort((a, b) =>
+            {
+                var aOrder = a.unitType == "PlayerBase" ? 0 : 1;
+                var bOrder = b.unitType == "PlayerBase" ? 0 : 1;
+                if (aOrder != bOrder) return aOrder.CompareTo(bOrder);
+                return a.id.CompareTo(b.id);
+            });
+
+            var activeIds = new HashSet<int>();
+            for (var i = 0; i < playerUnits.Count; i++)
+            {
+                var unit = playerUnits[i];
+                activeIds.Add(unit.id);
+                if (!_statusViewsByUnitId.TryGetValue(unit.id, out var view) || view?.root == null)
+                {
+                    view = CreateStatusCell(unit.id);
+                    _statusViewsByUnitId[unit.id] = view;
+                }
+
+                view.root.SetActive(true);
+                view.root.transform.SetSiblingIndex(i);
+                UpdateStatusCell(view, unit);
+            }
+
+            foreach (var pair in _statusViewsByUnitId)
+            {
+                if (pair.Value?.root == null) continue;
+                pair.Value.root.SetActive(activeIds.Contains(pair.Key));
+            }
+        }
+
+        private GameObject BuildStatusPanel(Transform root)
+        {
+            var panel = CreateUIObject("PlayerStatusPanel", root);
+            var rect = panel.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0f, 1f);
+            rect.anchorMax = new Vector2(0f, 1f);
+            rect.pivot = new Vector2(0f, 1f);
+            rect.anchoredPosition = new Vector2(20f, -150f);
+            rect.sizeDelta = new Vector2(340f, 420f);
+
+            var layout = panel.AddComponent<VerticalLayoutGroup>();
+            layout.spacing = 8f;
+            layout.childAlignment = TextAnchor.UpperLeft;
+            layout.childControlWidth = true;
+            layout.childForceExpandHeight = false;
+            layout.childForceExpandWidth = false;
+            return panel;
+        }
+
+        private UnitStatusView CreateStatusCell(int unitId)
+        {
+            var root = CreateUIObject($"Status_{unitId}", _statusPanel.transform);
+            var layout = root.AddComponent<HorizontalLayoutGroup>();
+            layout.padding = new RectOffset(10, 10, 8, 8);
+            layout.spacing = 10f;
+            layout.childAlignment = TextAnchor.MiddleLeft;
+            var rootImage = root.AddComponent<Image>();
+            rootImage.color = new Color(0f, 0f, 0f, 0.52f);
+            var layoutElement = root.AddComponent<LayoutElement>();
+            layoutElement.preferredHeight = 78f;
+            layoutElement.preferredWidth = 300f;
+
+            var button = root.AddComponent<Button>();
+            button.targetGraphic = rootImage;
+
+            var portraitRoot = CreateUIObject("PortraitRoot", root.transform);
+            var portraitRect = portraitRoot.GetComponent<RectTransform>();
+            portraitRect.sizeDelta = new Vector2(62f, 62f);
+            portraitRoot.AddComponent<LayoutElement>().preferredWidth = 62f;
+
+            var ringBgObj = CreateUIObject("RingBG", portraitRoot.transform);
+            StretchToParent(ringBgObj.GetComponent<RectTransform>());
+            var ringBg = ringBgObj.AddComponent<Image>();
+            ringBg.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/Knob.psd");
+            ringBg.type = Image.Type.Filled;
+            ringBg.fillMethod = Image.FillMethod.Radial360;
+            ringBg.fillAmount = 1f;
+            ringBg.color = new Color(1f, 1f, 1f, 0.2f);
+
+            var hpRingObj = CreateUIObject("HPRing", portraitRoot.transform);
+            StretchToParent(hpRingObj.GetComponent<RectTransform>());
+            var hpRing = hpRingObj.AddComponent<Image>();
+            hpRing.sprite = ringBg.sprite;
+            hpRing.type = Image.Type.Filled;
+            hpRing.fillMethod = Image.FillMethod.Radial360;
+            hpRing.fillOrigin = 2;
+            hpRing.fillAmount = 1f;
+            hpRing.color = new Color(0.25f, 0.9f, 0.38f, 1f);
+
+            var avatarMaskObj = CreateUIObject("AvatarMask", portraitRoot.transform);
+            var avatarMaskRect = avatarMaskObj.GetComponent<RectTransform>();
+            avatarMaskRect.anchorMin = new Vector2(0.17f, 0.17f);
+            avatarMaskRect.anchorMax = new Vector2(0.83f, 0.83f);
+            avatarMaskRect.offsetMin = Vector2.zero;
+            avatarMaskRect.offsetMax = Vector2.zero;
+            var avatarMaskImage = avatarMaskObj.AddComponent<Image>();
+            avatarMaskImage.sprite = ringBg.sprite;
+            avatarMaskImage.color = new Color(0f, 0f, 0f, 0.65f);
+            avatarMaskObj.AddComponent<Mask>().showMaskGraphic = true;
+
+            var avatarObj = CreateUIObject("Avatar", avatarMaskObj.transform);
+            StretchToParent(avatarObj.GetComponent<RectTransform>());
+            var avatarImage = avatarObj.AddComponent<Image>();
+            avatarImage.preserveAspect = true;
+
+            var nameObj = CreateUIObject("NameText", root.transform);
+            var nameText = nameObj.AddComponent<Text>();
+            nameText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            nameText.fontSize = 24;
+            nameText.color = Color.white;
+            nameText.alignment = TextAnchor.MiddleLeft;
+            nameObj.AddComponent<LayoutElement>().preferredWidth = 200f;
+
+            button.onClick.AddListener(() => ShowUnitDetails(unitId));
+
+            return new UnitStatusView
+            {
+                root = root,
+                portrait = avatarImage,
+                hpRing = hpRing,
+                nameText = nameText
+            };
+        }
+
+        private void UpdateStatusCell(UnitStatusView view, UnitRuntimeData unit)
+        {
+            view.nameText.text = unit.name;
+            view.portrait.sprite = GetPortraitSprite(unit.unitType);
+
+            var hpPercent = unit.maxHp <= 0.01f ? 0f : Mathf.Clamp01(unit.hp / unit.maxHp);
+            view.hpRing.fillAmount = hpPercent;
+            view.hpRing.color = Color.Lerp(new Color(0.9f, 0.22f, 0.22f, 1f), new Color(0.25f, 0.9f, 0.38f, 1f), hpPercent);
+        }
+
+        private GameObject BuildDetailPanel(Transform root, Font font)
+        {
+            var panel = CreateUIObject("UnitDetailPanel", root);
+            StretchToParent(panel.GetComponent<RectTransform>());
+            var blocker = panel.AddComponent<Image>();
+            blocker.color = new Color(0f, 0f, 0f, 0.68f);
+
+            var card = CreateUIObject("DetailCard", panel.transform);
+            var cardRect = card.GetComponent<RectTransform>();
+            cardRect.anchorMin = new Vector2(0.5f, 0.5f);
+            cardRect.anchorMax = new Vector2(0.5f, 0.5f);
+            cardRect.pivot = new Vector2(0.5f, 0.5f);
+            cardRect.sizeDelta = new Vector2(560f, 700f);
+            var cardBg = card.AddComponent<Image>();
+            cardBg.color = new Color(0.09f, 0.1f, 0.14f, 0.98f);
+
+            var closeButtonObj = CreateUIObject("CloseButton", card.transform);
+            var closeRect = closeButtonObj.GetComponent<RectTransform>();
+            closeRect.anchorMin = new Vector2(1f, 1f);
+            closeRect.anchorMax = new Vector2(1f, 1f);
+            closeRect.pivot = new Vector2(1f, 1f);
+            closeRect.anchoredPosition = new Vector2(-16f, -16f);
+            closeRect.sizeDelta = new Vector2(44f, 44f);
+            var closeImage = closeButtonObj.AddComponent<Image>();
+            closeImage.color = new Color(0.3f, 0.12f, 0.14f, 1f);
+            var closeButton = closeButtonObj.AddComponent<Button>();
+            closeButton.targetGraphic = closeImage;
+            closeButton.onClick.AddListener(() => _detailPanel.SetActive(false));
+
+            var closeText = CreateUIObject("Label", closeButtonObj.transform).AddComponent<Text>();
+            closeText.font = font;
+            closeText.alignment = TextAnchor.MiddleCenter;
+            closeText.fontSize = 28;
+            closeText.color = Color.white;
+            closeText.text = "×";
+            StretchToParent(closeText.GetComponent<RectTransform>());
+
+            _detailTitle = CreateUIObject("Title", card.transform).AddComponent<Text>();
+            _detailTitle.font = font;
+            _detailTitle.fontSize = 30;
+            _detailTitle.color = Color.white;
+            _detailTitle.alignment = TextAnchor.MiddleLeft;
+            var titleRect = _detailTitle.GetComponent<RectTransform>();
+            titleRect.anchorMin = new Vector2(0f, 1f);
+            titleRect.anchorMax = new Vector2(1f, 1f);
+            titleRect.pivot = new Vector2(0.5f, 1f);
+            titleRect.offsetMin = new Vector2(24f, -80f);
+            titleRect.offsetMax = new Vector2(-24f, -24f);
+
+            var scrollObj = CreateUIObject("DetailScroll", card.transform);
+            var scrollRect = scrollObj.AddComponent<ScrollRect>();
+            var scrollRectTransform = scrollObj.GetComponent<RectTransform>();
+            scrollRectTransform.anchorMin = new Vector2(0f, 0f);
+            scrollRectTransform.anchorMax = new Vector2(1f, 1f);
+            scrollRectTransform.offsetMin = new Vector2(24f, 24f);
+            scrollRectTransform.offsetMax = new Vector2(-40f, -96f);
+
+            var viewport = CreateUIObject("Viewport", scrollObj.transform);
+            var viewportImage = viewport.AddComponent<Image>();
+            viewportImage.color = new Color(0f, 0f, 0f, 0.2f);
+            viewport.AddComponent<Mask>().showMaskGraphic = false;
+            StretchToParent(viewport.GetComponent<RectTransform>());
+
+            var content = CreateUIObject("Content", viewport.transform);
+            var contentRect = content.GetComponent<RectTransform>();
+            contentRect.anchorMin = new Vector2(0f, 1f);
+            contentRect.anchorMax = new Vector2(1f, 1f);
+            contentRect.pivot = new Vector2(0.5f, 1f);
+            contentRect.anchoredPosition = Vector2.zero;
+            contentRect.sizeDelta = new Vector2(0f, 800f);
+
+            _detailContent = content.AddComponent<Text>();
+            _detailContent.font = font;
+            _detailContent.fontSize = 24;
+            _detailContent.alignment = TextAnchor.UpperLeft;
+            _detailContent.color = new Color(0.92f, 0.96f, 1f, 1f);
+            _detailContent.horizontalOverflow = HorizontalWrapMode.Wrap;
+            _detailContent.verticalOverflow = VerticalWrapMode.Overflow;
+
+            var fitter = content.AddComponent<ContentSizeFitter>();
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+
+            scrollRect.viewport = viewport.GetComponent<RectTransform>();
+            scrollRect.content = contentRect;
+            scrollRect.horizontal = false;
+            scrollRect.vertical = true;
+            scrollRect.movementType = ScrollRect.MovementType.Clamped;
+            scrollRect.scrollSensitivity = 20f;
+
+            return panel;
+        }
+
+        private void ShowUnitDetails(int unitId)
+        {
+            var units = UnitManager.GetUnits();
+            UnitRuntimeData unit = UnitRuntimeData.Empty;
+            for (var i = 0; i < units.Count; i++)
+            {
+                if (units[i].id != unitId) continue;
+                unit = units[i];
+                break;
+            }
+
+            if (unit.IsEmpty()) return;
+            _detailPanel.SetActive(true);
+            _detailTitle.text = $"{unit.name} 详情";
+            _detailContent.text = BuildUnitDetailText(unit);
+        }
+
+        private string BuildUnitDetailText(UnitRuntimeData unit)
+        {
+            var effectiveAttackInterval = EvolutionaryMomentSystem.GetEffectiveAttackInterval(unit);
+            var attackPerSec = effectiveAttackInterval <= 0f ? 0f : 1f / effectiveAttackInterval;
+
+            var lines = new List<string>
+            {
+                $"类型：{unit.unitType}",
+                $"生命：{unit.hp:0.#}/{unit.maxHp:0.#}",
+                $"攻击力：{unit.attack:0.#}",
+                $"攻击范围：{unit.attackRange:0.##}",
+                $"攻击速度：{unit.attackSpeed:0.##}",
+                $"攻击间隔：{effectiveAttackInterval:0.##} 秒/次（约 {attackPerSec:0.##} 次/秒）",
+                $"弹道数量：{unit.projectileCount}",
+                $"移速：{unit.moveSpeed:0.##}",
+                ""
+            };
+
+            EvolutionaryMomentSystem.GetSelectedOptionsForUnit(unit, _selectedOptionBuffer);
+            if (_selectedOptionBuffer.Count > 0)
+            {
+                lines.Add("已拥有天赋：");
+                for (var i = 0; i < _selectedOptionBuffer.Count; i++)
+                {
+                    var option = _selectedOptionBuffer[i];
+                    lines.Add($"• {option.title}：{option.description}");
+                }
+            }
+            else
+            {
+                lines.Add("已拥有天赋：暂无");
+            }
+
+            lines.Add("");
+            EvolutionaryMomentSystem.GetSkillRuntimesForOwner(unit.id, _skillRuntimeBuffer);
+            if (_skillRuntimeBuffer.Count > 0)
+            {
+                lines.Add("技能：");
+                for (var i = 0; i < _skillRuntimeBuffer.Count; i++)
+                {
+                    var runtime = _skillRuntimeBuffer[i];
+                    lines.Add($"• {runtime.skillId}（冷却 {runtime.cooldown:0.#}s，持续 {runtime.duration:0.#}s）");
+                }
+            }
+            else
+            {
+                lines.Add("技能：暂无");
+            }
+
+            return string.Join("\n", lines);
+        }
+
+        private void LoadVisualConfigs()
+        {
+            _visualConfigByType.Clear();
+            var configText = Resources.Load<TextAsset>("Configs/UnitVisualConfigs");
+            if (configText == null) return;
+
+            var list = JsonUtility.FromJson<PortraitVisualConfigList>(configText.text);
+            if (list?.visuals == null) return;
+
+            for (var i = 0; i < list.visuals.Count; i++)
+            {
+                var visual = list.visuals[i];
+                if (string.IsNullOrEmpty(visual.unitType)) continue;
+                _visualConfigByType[visual.unitType] = visual;
+            }
+        }
+
+        private Sprite GetPortraitSprite(string unitType)
+        {
+            if (_portraitSpriteCacheByType.TryGetValue(unitType, out var sprite)) return sprite;
+            if (!_visualConfigByType.TryGetValue(unitType, out var config)) return null;
+
+            var texture = Resources.Load<Texture2D>(config.textureResourcePath);
+            if (texture == null) return null;
+
+            sprite = Sprite.Create(texture, new Rect(0f, 0f, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+            _portraitSpriteCacheByType[unitType] = sprite;
+            return sprite;
         }
 
         private void DrawPreparationGrid()
@@ -360,6 +726,27 @@ namespace Manager
             rectTransform.anchorMax = Vector2.one;
             rectTransform.offsetMin = Vector2.zero;
             rectTransform.offsetMax = Vector2.zero;
+        }
+
+        private sealed class UnitStatusView
+        {
+            public GameObject root;
+            public Image portrait;
+            public Image hpRing;
+            public Text nameText;
+        }
+
+        [System.Serializable]
+        private sealed class PortraitVisualConfigList
+        {
+            public List<PortraitVisualConfig> visuals = new();
+        }
+
+        [System.Serializable]
+        private sealed class PortraitVisualConfig
+        {
+            public string unitType;
+            public string textureResourcePath;
         }
     }
 }

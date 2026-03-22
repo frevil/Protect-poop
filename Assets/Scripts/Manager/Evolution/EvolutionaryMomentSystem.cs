@@ -378,6 +378,21 @@ namespace Manager.Evolution
             return buffer.Count;
         }
 
+        public static int GetSelectedOptionsForUnit(UnitRuntimeData unit, List<EvolutionaryMomentOption> buffer)
+        {
+            if (buffer == null) return 0;
+            buffer.Clear();
+
+            foreach (var optionId in SelectedOptionIds)
+            {
+                if (!OptionById.TryGetValue(optionId, out var option)) continue;
+                if (!ShouldAffectUnit(option, unit)) continue;
+                buffer.Add(option);
+            }
+
+            return buffer.Count;
+        }
+
         private static void EnsureLoaded()
         {
             if (_loaded) return;
