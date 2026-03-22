@@ -7,6 +7,9 @@ namespace Render
 {
     public class SimpleRenderer : MonoBehaviour
     {
+        private static readonly Color EnemyDamageColor = new(1f, 0.25f, 0.25f, 0f);
+        private static readonly Color PlayerDamageColor = new(0.35f, 0.65f, 1f, 0f);
+
         private readonly Dictionary<int, GameObject> _unitsGameObjects = new();
         private readonly Dictionary<int, string> _renderedUnitTypeById = new();
         private readonly Dictionary<string, UnitVisualConfig> _visualConfigByType = new();
@@ -114,7 +117,7 @@ namespace Render
             textMesh.alignment = TextAlignment.Center;
             textMesh.fontSize = 64;
             textMesh.characterSize = 0.045f;
-            textMesh.color = new Color(1f, 0.25f, 0.25f, 0f);
+            textMesh.color = unitRuntimeData.faction == Scripts.Core.Faction.Player ? PlayerDamageColor : EnemyDamageColor;
 
             var meshRenderer = root.GetComponent<MeshRenderer>();
             if (meshRenderer != null)
