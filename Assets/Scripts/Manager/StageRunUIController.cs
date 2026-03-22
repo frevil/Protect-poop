@@ -12,8 +12,9 @@ namespace Manager
         private Canvas _canvas;
         private GameObject _settlementPanel;
         private Text _settlementText;
-        private GameObject _preparationPanel;
-        private Text _preparationText;
+        private GameObject _preparationRoot;
+        private TextMesh _preparationTextMesh;
+        private GameObject _preparationConfirmButton;
         private GameObject _statusPanel;
         private GameObject _topStatusRoot;
         private TextMesh _nutritionTextMesh;
@@ -58,6 +59,7 @@ namespace Manager
         {
             RefreshRunningState();
             UpdateTopStatusTransform();
+            HandlePreparationConfirmClick();
             if (_detailPanel != null && _detailPanel.activeSelf && Input.GetKeyDown(KeyCode.Escape))
             {
                 HideDetailPanel();
@@ -114,8 +116,8 @@ namespace Manager
             _settlementPanel = BuildSettlementPanel(root.transform, font);
             _settlementPanel.SetActive(false);
 
-            _preparationPanel = BuildPreparationPanel(root.transform, font);
-            _preparationPanel.SetActive(false);
+            BuildPreparationDisplay(font);
+            _preparationRoot.SetActive(false);
         }
 
         private GameObject BuildSettlementPanel(Transform root, Font font)
@@ -157,40 +159,48 @@ namespace Manager
             return panel;
         }
 
-        private GameObject BuildPreparationPanel(Transform root, Font font)
+        private void BuildPreparationDisplay(Font font)
         {
-            var panel = CreateUIObject("PreparationPanel", root);
-            StretchToParent(panel.GetComponent<RectTransform>());
+            _preparationRoot = new GameObject("PreparationWorldDisplay");
+            _preparationRoot.transform.SetParent(transform, false);
 
-            var blocker = panel.AddComponent<Image>();
-            blocker.color = new Color(0f, 0f, 0f, 0.35f);
+            var card = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            card.name = "PreparationCard";
+            card.transform.SetParent(_preparationRoot.transform, false);
+            card.transform.localScale = new Vector3(3.2f, 1.15f, 1f);
+            card.transform.localPosition = Vector3.zero;
 
-            var top = CreateUIObject("PreparationCard", panel.transform);
-            var topRect = top.GetComponent<RectTransform>();
-            topRect.anchorMin = new Vector2(0.5f, 0.5f);
-            topRect.anchorMax = new Vector2(0.5f, 0.5f);
-            topRect.pivot = new Vector2(0.5f, 0.5f);
-            topRect.anchoredPosition = new Vector2(0f, 160f);
-            topRect.sizeDelta = new Vector2(620f, 220f);
+            var cardMaterial = new Material(Shader.Find("Unlit/Color"));
+            cardMaterial.color = new Color(0.08f, 0.1f, 0.14f, 0.92f);
+            card.GetComponent<MeshRenderer>().material = cardMaterial;
 
-            var topBg = top.AddComponent<Image>();
-            topBg.color = new Color(0.08f, 0.1f, 0.14f, 0.92f);
+            _preparationTextMesh = CreateTopStatusTextMesh("PreparationText", font, 34, new Vector3(0f, 0.24f, -0.01f), _preparationRoot.transform);
+            _preparationTextMesh.anchor = TextAnchor.MiddleCenter;
+            _preparationTextMesh.alignment = TextAlignment.Center;
+            _preparationTextMesh.text = "战斗准备中";
 
-            var layout = top.AddComponent<VerticalLayoutGroup>();
-            layout.padding = new RectOffset(24, 24, 24, 24);
-            layout.spacing = 14f;
-            layout.childControlWidth = true;
-            layout.childControlHeight = true;
-            layout.childForceExpandWidth = false;
-            layout.childAlignment = TextAnchor.UpperCenter;
+            _preparationConfirmButton = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            _preparationConfirmButton.name = "ConfirmButton";
+            _preparationConfirmButton.transform.SetParent(_preparationRoot.transform, false);
+            _preparationConfirmButton.transform.localScale = new Vector3(2.2f, 0.42f, 1f);
+            _preparationConfirmButton.transform.localPosition = new Vector3(0f, -0.28f, -0.01f);
 
-            _preparationText = CreateHUDText(top.transform, font, 26);
-            _preparationText.alignment = TextAnchor.MiddleCenter;
-            _preparationText.horizontalOverflow = HorizontalWrapMode.Wrap;
-            _preparationText.text = "战斗准备中";
+            var buttonMaterial = new Material(Shader.Find("Unlit/Color"));
+            buttonMaterial.color = new Color(0.23f, 0.3f, 0.4f, 1f);
+            _preparationConfirmButton.GetComponent<MeshRenderer>().material = buttonMaterial;
 
-            CreateActionButton(top.transform, "确认站位并开始战斗", UnitManager.ConfirmBattlePreparation, font, 52f, 22, 420f);
-            return panel;
+            var confirmText = new GameObject("ConfirmText");
+            confirmText.transform.SetParent(_preparationConfirmButton.transform, false);
+            confirmText.transform.localPosition = new Vector3(0f, 0f, -0.01f);
+            var confirmTextMesh = confirmText.AddComponent<TextMesh>();
+            confirmTextMesh.font = font;
+            confirmTextMesh.fontSize = 28;
+            confirmTextMesh.anchor = TextAnchor.MiddleCenter;
+            confirmTextMesh.alignment = TextAlignment.Center;
+            confirmTextMesh.characterSize = 0.05f;
+            confirmTextMesh.color = Color.white;
+            confirmTextMesh.text = "确认站位并开始战斗";
+            confirmText.GetComponent<MeshRenderer>().material = font.material;
         }
 
         private void BuildTopStatusDisplay(Font font)
@@ -220,10 +230,10 @@ namespace Manager
             UpdateTopStatusTransform();
         }
 
-        private TextMesh CreateTopStatusTextMesh(string name, Font font, int fontSize, Vector3 localPosition)
+        private TextMesh CreateTopStatusTextMesh(string name, Font font, int fontSize, Vector3 localPosition, Transform parent = null)
         {
             var textObj = new GameObject(name);
-            textObj.transform.SetParent(_topStatusRoot.transform, false);
+            textObj.transform.SetParent(parent != null ? parent : _topStatusRoot.transform, false);
             textObj.transform.localPosition = localPosition;
 
             var mesh = textObj.AddComponent<TextMesh>();
@@ -302,7 +312,7 @@ namespace Manager
                                    $"已完成难度{info.Tier}的第 {info.ClearedStageInTier}/{info.TotalStageInTier} 关。\n" +
                                    "现在可选择是否花费3点营养购买新伙伴。";
             _settlementPanel.SetActive(true);
-            _preparationPanel.SetActive(false);
+            _preparationRoot.SetActive(false);
             Time.timeScale = 0f;
         }
 
@@ -310,21 +320,21 @@ namespace Manager
         {
             _gridColumns = Mathf.Max(1, info.GridColumns);
             _gridRows = Mathf.Max(1, info.GridRows);
-            _preparationText.text = $"战斗准备：拖动伙伴到格子中。当前分割 {_gridColumns} x {_gridRows}";
-            _preparationPanel.SetActive(true);
+            _preparationTextMesh.text = $"战斗准备：拖动伙伴到格子中\n当前分割 {_gridColumns} x {_gridRows}";
+            _preparationRoot.SetActive(true);
             _settlementPanel.SetActive(false);
             Time.timeScale = 1f;
         }
 
         private void HandleBattlePreparationEnded()
         {
-            _preparationPanel.SetActive(false);
+            _preparationRoot.SetActive(false);
         }
 
         private void HandleGameEnded(bool _, string __)
         {
             _settlementPanel.SetActive(false);
-            _preparationPanel.SetActive(false);
+            _preparationRoot.SetActive(false);
             _detailPanel.SetActive(false);
             Time.timeScale = 1f;
         }
@@ -356,6 +366,10 @@ namespace Manager
             {
                 _topStatusRoot.SetActive(_canvas.enabled);
             }
+            if (_preparationRoot != null && !_canvas.enabled)
+            {
+                _preparationRoot.SetActive(false);
+            }
             RefreshStatusPanel();
         }
 
@@ -368,6 +382,25 @@ namespace Manager
             var worldPos = camera.ViewportToWorldPoint(new Vector3(0.16f, 0.94f, near));
             _topStatusRoot.transform.position = worldPos;
             _topStatusRoot.transform.rotation = camera.transform.rotation;
+
+            if (_preparationRoot != null)
+            {
+                var prepWorldPos = camera.ViewportToWorldPoint(new Vector3(0.5f, 0.9f, near + 0.08f));
+                _preparationRoot.transform.position = prepWorldPos;
+                _preparationRoot.transform.rotation = camera.transform.rotation;
+            }
+        }
+
+        private void HandlePreparationConfirmClick()
+        {
+            if (_preparationRoot == null || !_preparationRoot.activeSelf || _preparationConfirmButton == null) return;
+            if (!Input.GetMouseButtonDown(0) || Camera.main == null) return;
+
+            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out var hit) && hit.transform == _preparationConfirmButton.transform)
+            {
+                UnitManager.ConfirmBattlePreparation();
+            }
         }
 
         private void RefreshStatusPanel()
