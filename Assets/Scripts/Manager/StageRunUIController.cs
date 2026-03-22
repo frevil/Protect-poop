@@ -10,13 +10,14 @@ namespace Manager
     public class StageRunUIController : MonoBehaviour
     {
         private Canvas _canvas;
-        private Text _nutritionText;
-        private Text _stageText;
         private GameObject _settlementPanel;
         private Text _settlementText;
         private GameObject _preparationPanel;
         private Text _preparationText;
         private GameObject _statusPanel;
+        private GameObject _topStatusRoot;
+        private TextMesh _nutritionTextMesh;
+        private TextMesh _stageTextMesh;
         private GameObject _detailPanel;
         private Text _detailTitle;
         private Text _detailContent;
@@ -54,6 +55,11 @@ namespace Manager
         private void Update()
         {
             RefreshRunningState();
+            UpdateTopStatusTransform();
+            if (_detailPanel != null && _detailPanel.activeSelf && Input.GetKeyDown(KeyCode.Escape))
+            {
+                HideDetailPanel();
+            }
         }
 
         private void OnGUI()
@@ -97,25 +103,7 @@ namespace Manager
             StretchToParent(root.GetComponent<RectTransform>());
 
             LoadVisualConfigs();
-            var hudPanel = CreateUIObject("HudPanel", root.transform);
-            var hudImage = hudPanel.AddComponent<Image>();
-            hudImage.color = new Color(0f, 0f, 0f, 0.45f);
-
-            var hudRect = hudPanel.GetComponent<RectTransform>();
-            hudRect.anchorMin = new Vector2(0f, 1f);
-            hudRect.anchorMax = new Vector2(0f, 1f);
-            hudRect.pivot = new Vector2(0f, 1f);
-            hudRect.anchoredPosition = new Vector2(20f, -20f);
-            hudRect.sizeDelta = new Vector2(320f, 110f);
-
-            var hudLayout = hudPanel.AddComponent<VerticalLayoutGroup>();
-            hudLayout.padding = new RectOffset(16, 16, 10, 10);
-            hudLayout.spacing = 8f;
-            hudLayout.childControlHeight = true;
-            hudLayout.childControlWidth = true;
-
-            _nutritionText = CreateHUDText(hudPanel.transform, font, 26);
-            _stageText = CreateHUDText(hudPanel.transform, font, 22);
+            BuildTopStatusDisplay(font);
 
             _statusPanel = BuildStatusPanel(root.transform);
             _detailPanel = BuildDetailPanel(root.transform, font);
@@ -203,6 +191,52 @@ namespace Manager
             return panel;
         }
 
+        private void BuildTopStatusDisplay(Font font)
+        {
+            _topStatusRoot = new GameObject("TopStatusDisplay");
+            _topStatusRoot.transform.SetParent(transform, false);
+
+            var background = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            background.name = "Background";
+            background.transform.SetParent(_topStatusRoot.transform, false);
+            background.transform.localScale = new Vector3(2.8f, 0.85f, 1f);
+            background.transform.localPosition = Vector3.zero;
+
+            var collider = background.GetComponent<Collider>();
+            if (collider != null)
+            {
+                Destroy(collider);
+            }
+
+            var topStatusMaterial = new Material(Shader.Find("Unlit/Color"));
+            topStatusMaterial.color = new Color(0f, 0f, 0f, 0.45f);
+            var backgroundRenderer = background.GetComponent<MeshRenderer>();
+            backgroundRenderer.material = topStatusMaterial;
+
+            _nutritionTextMesh = CreateTopStatusTextMesh("NutritionText", font, 42, new Vector3(-1.28f, 0.2f, -0.01f));
+            _stageTextMesh = CreateTopStatusTextMesh("StageText", font, 34, new Vector3(-1.28f, -0.2f, -0.01f));
+            UpdateTopStatusTransform();
+        }
+
+        private TextMesh CreateTopStatusTextMesh(string name, Font font, int fontSize, Vector3 localPosition)
+        {
+            var textObj = new GameObject(name);
+            textObj.transform.SetParent(_topStatusRoot.transform, false);
+            textObj.transform.localPosition = localPosition;
+
+            var mesh = textObj.AddComponent<TextMesh>();
+            mesh.font = font;
+            mesh.fontSize = fontSize;
+            mesh.anchor = TextAnchor.MiddleLeft;
+            mesh.alignment = TextAlignment.Left;
+            mesh.color = Color.white;
+            mesh.characterSize = 0.05f;
+
+            var renderer = textObj.GetComponent<MeshRenderer>();
+            renderer.material = font.material;
+            return mesh;
+        }
+
         private static Text CreateHUDText(Transform parent, Font font, int fontSize)
         {
             var text = CreateUIObject("Text", parent).AddComponent<Text>();
@@ -244,12 +278,18 @@ namespace Manager
 
         private void HandleNutritionChanged(int nutrition)
         {
-            _nutritionText.text = $"营养值：{nutrition}";
+            if (_nutritionTextMesh != null)
+            {
+                _nutritionTextMesh.text = $"营养值：{nutrition}";
+            }
         }
 
         private void HandleStageProgressChanged(StageProgressInfo info)
         {
-            _stageText.text = $"难度{info.Tier} - 关卡 {info.StageInTier}/{info.TotalStageInTier}";
+            if (_stageTextMesh != null)
+            {
+                _stageTextMesh.text = $"难度{info.Tier} - 关卡 {info.StageInTier}/{info.TotalStageInTier}";
+            }
             _settlementPanel.SetActive(false);
             Time.timeScale = 1f;
         }
@@ -310,7 +350,22 @@ namespace Manager
         private void RefreshRunningState()
         {
             _canvas.enabled = UnitManager.IsGameRunning() || UnitManager.IsBattlePreparing() || _settlementPanel.activeSelf;
+            if (_topStatusRoot != null)
+            {
+                _topStatusRoot.SetActive(_canvas.enabled);
+            }
             RefreshStatusPanel();
+        }
+
+        private void UpdateTopStatusTransform()
+        {
+            if (_topStatusRoot == null || Camera.main == null) return;
+
+            var camera = Camera.main;
+            var near = camera.nearClipPlane + 0.25f;
+            var worldPos = camera.ViewportToWorldPoint(new Vector3(0.16f, 0.94f, near));
+            _topStatusRoot.transform.position = worldPos;
+            _topStatusRoot.transform.rotation = camera.transform.rotation;
         }
 
         private void RefreshStatusPanel()
@@ -473,6 +528,9 @@ namespace Manager
             StretchToParent(panel.GetComponent<RectTransform>());
             var blocker = panel.AddComponent<Image>();
             blocker.color = new Color(0f, 0f, 0f, 0.68f);
+            var blockerButton = panel.AddComponent<Button>();
+            blockerButton.targetGraphic = blocker;
+            blockerButton.onClick.AddListener(HideDetailPanel);
 
             var card = CreateUIObject("DetailCard", panel.transform);
             var cardRect = card.GetComponent<RectTransform>();
@@ -494,7 +552,7 @@ namespace Manager
             closeImage.color = new Color(0.3f, 0.12f, 0.14f, 1f);
             var closeButton = closeButtonObj.AddComponent<Button>();
             closeButton.targetGraphic = closeImage;
-            closeButton.onClick.AddListener(() => _detailPanel.SetActive(false));
+            closeButton.onClick.AddListener(HideDetailPanel);
 
             var closeText = CreateUIObject("Label", closeButtonObj.transform).AddComponent<Text>();
             closeText.font = font;
@@ -575,6 +633,12 @@ namespace Manager
             _detailPanel.SetActive(true);
             _detailTitle.text = $"{unit.name} 详情";
             _detailContent.text = BuildUnitDetailText(unit);
+        }
+
+        private void HideDetailPanel()
+        {
+            if (_detailPanel == null) return;
+            _detailPanel.SetActive(false);
         }
 
         private string BuildUnitDetailText(UnitRuntimeData unit)
