@@ -266,7 +266,6 @@ namespace Render
 
             if (iconView.ringRenderer == null) return;
             var progress = 1f;
-            var reverse = false;
             if (runtime.isActive)
             {
                 if (runtime.duration > 0.01f)
@@ -277,18 +276,16 @@ namespace Render
                 {
                     progress = 0f;
                 }
-
-                reverse = true;
             }
             else if (runtime.cooldown > 0.01f)
             {
                 progress = Mathf.Clamp01(runtime.cooldownTimer / runtime.cooldown);
             }
 
-            DrawProgressRing(iconView.ringRenderer, progress, reverse);
+            DrawProgressRing(iconView.ringRenderer, progress);
         }
 
-        private static void DrawProgressRing(LineRenderer lineRenderer, float progress, bool reverse = false)
+        private static void DrawProgressRing(LineRenderer lineRenderer, float progress)
         {
             var clamped = Mathf.Clamp01(progress);
             if (clamped <= 0.001f)
@@ -305,8 +302,7 @@ namespace Render
             for (var i = 0; i <= segments; i++)
             {
                 var t = (float)i / segments * clamped;
-                var direction = reverse ? -1f : 1f;
-                var angle = (Mathf.PI * 2f * t * direction) + (Mathf.PI / 2f);
+                var angle = (Mathf.PI * 2f * t) + (Mathf.PI / 2f);
                 var pos = new Vector3(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius, -0.02f);
                 lineRenderer.SetPosition(i, pos);
             }
