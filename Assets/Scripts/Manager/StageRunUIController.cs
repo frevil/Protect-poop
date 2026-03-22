@@ -22,7 +22,7 @@ namespace Manager
         private Text _detailTitle;
         private Text _detailContent;
         private readonly Dictionary<int, UnitStatusView> _statusViewsByUnitId = new();
-        private readonly Dictionary<string, Sprite> _portraitSpriteCacheByType = new();
+        private readonly Dictionary<string, Texture2D> _portraitTextureCacheByType = new();
         private readonly Dictionary<string, PortraitVisualConfig> _visualConfigByType = new();
         private readonly List<EvolutionaryMomentOption> _selectedOptionBuffer = new();
         private readonly List<EvolutionSkillRuntime> _skillRuntimeBuffer = new();
@@ -30,6 +30,7 @@ namespace Manager
         private int _gridColumns = 15;
         private int _gridRows = 8;
         private Texture2D _whiteTexture;
+        private Shader _statusSlotShader;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Bootstrap()
@@ -44,6 +45,7 @@ namespace Manager
 
         private void Awake()
         {
+            _statusSlotShader = Shader.Find("Custom/UI/CompanionPortraitRing");
             BuildUI();
             RefreshRunningState();
             HandleNutritionChanged(UnitManager.GetNutrition());
@@ -458,40 +460,12 @@ namespace Manager
             portraitRect.sizeDelta = new Vector2(62f, 62f);
             portraitRoot.AddComponent<LayoutElement>().preferredWidth = 62f;
 
-            var ringBgObj = CreateUIObject("RingBG", portraitRoot.transform);
-            StretchToParent(ringBgObj.GetComponent<RectTransform>());
-            var ringBg = ringBgObj.AddComponent<Image>();
-            ringBg.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/Knob.psd");
-            ringBg.type = Image.Type.Filled;
-            ringBg.fillMethod = Image.FillMethod.Radial360;
-            ringBg.fillAmount = 1f;
-            ringBg.color = new Color(1f, 1f, 1f, 0.2f);
-
-            var hpRingObj = CreateUIObject("HPRing", portraitRoot.transform);
-            StretchToParent(hpRingObj.GetComponent<RectTransform>());
-            var hpRing = hpRingObj.AddComponent<Image>();
-            hpRing.sprite = ringBg.sprite;
-            hpRing.type = Image.Type.Filled;
-            hpRing.fillMethod = Image.FillMethod.Radial360;
-            hpRing.fillOrigin = 2;
-            hpRing.fillAmount = 1f;
-            hpRing.color = new Color(0.25f, 0.9f, 0.38f, 1f);
-
-            var avatarMaskObj = CreateUIObject("AvatarMask", portraitRoot.transform);
-            var avatarMaskRect = avatarMaskObj.GetComponent<RectTransform>();
-            avatarMaskRect.anchorMin = new Vector2(0.17f, 0.17f);
-            avatarMaskRect.anchorMax = new Vector2(0.83f, 0.83f);
-            avatarMaskRect.offsetMin = Vector2.zero;
-            avatarMaskRect.offsetMax = Vector2.zero;
-            var avatarMaskImage = avatarMaskObj.AddComponent<Image>();
-            avatarMaskImage.sprite = ringBg.sprite;
-            avatarMaskImage.color = new Color(0f, 0f, 0f, 0.65f);
-            avatarMaskObj.AddComponent<Mask>().showMaskGraphic = true;
-
-            var avatarObj = CreateUIObject("Avatar", avatarMaskObj.transform);
-            StretchToParent(avatarObj.GetComponent<RectTransform>());
-            var avatarImage = avatarObj.AddComponent<Image>();
-            avatarImage.preserveAspect = true;
+            var portraitFxObj = CreateUIObject("PortraitFX", portraitRoot.transform);
+            StretchToParent(portraitFxObj.GetComponent<RectTransform>());
+            var portraitFx = portraitFxObj.AddComponent<RawImage>();
+            portraitFx.color = Color.white;
+            var portraitMaterial = BuildStatusSlotMaterial();
+            portraitFx.material = portraitMaterial;
 
             var nameObj = CreateUIObject("NameText", root.transform);
             var nameText = nameObj.AddComponent<Text>();
@@ -506,8 +480,8 @@ namespace Manager
             return new UnitStatusView
             {
                 root = root,
-                portrait = avatarImage,
-                hpRing = hpRing,
+                portraitFx = portraitFx,
+                portraitMaterial = portraitMaterial,
                 nameText = nameText
             };
         }
@@ -515,11 +489,12 @@ namespace Manager
         private void UpdateStatusCell(UnitStatusView view, UnitRuntimeData unit)
         {
             view.nameText.text = unit.name;
-            view.portrait.sprite = GetPortraitSprite(unit.unitType);
+            view.portraitFx.texture = GetPortraitTexture(unit.unitType);
 
             var hpPercent = unit.maxHp <= 0.01f ? 0f : Mathf.Clamp01(unit.hp / unit.maxHp);
-            view.hpRing.fillAmount = hpPercent;
-            view.hpRing.color = Color.Lerp(new Color(0.9f, 0.22f, 0.22f, 1f), new Color(0.25f, 0.9f, 0.38f, 1f), hpPercent);
+            var hpColor = Color.Lerp(new Color(0.9f, 0.22f, 0.22f, 1f), new Color(0.25f, 0.9f, 0.38f, 1f), hpPercent);
+            view.portraitMaterial.SetFloat("_HpFill", hpPercent);
+            view.portraitMaterial.SetColor("_HpColor", hpColor);
         }
 
         private GameObject BuildDetailPanel(Transform root, Font font)
@@ -710,17 +685,31 @@ namespace Manager
             }
         }
 
-        private Sprite GetPortraitSprite(string unitType)
+        private Texture2D GetPortraitTexture(string unitType)
         {
-            if (_portraitSpriteCacheByType.TryGetValue(unitType, out var sprite)) return sprite;
+            if (_portraitTextureCacheByType.TryGetValue(unitType, out var texture)) return texture;
             if (!_visualConfigByType.TryGetValue(unitType, out var config)) return null;
 
-            var texture = Resources.Load<Texture2D>(config.textureResourcePath);
+            texture = Resources.Load<Texture2D>(config.textureResourcePath);
             if (texture == null) return null;
 
-            sprite = Sprite.Create(texture, new Rect(0f, 0f, texture.width, texture.height), new Vector2(0.5f, 0.5f));
-            _portraitSpriteCacheByType[unitType] = sprite;
-            return sprite;
+            _portraitTextureCacheByType[unitType] = texture;
+            return texture;
+        }
+
+        private Material BuildStatusSlotMaterial()
+        {
+            var shader = _statusSlotShader != null ? _statusSlotShader : Shader.Find("Unlit/Transparent");
+            var material = new Material(shader);
+            material.SetFloat("_InnerRadius", 0.66f);
+            material.SetFloat("_RingWidth", 0.13f);
+            material.SetFloat("_HpFill", 1f);
+            material.SetColor("_HpColor", new Color(0.25f, 0.9f, 0.38f, 1f));
+            material.SetColor("_RingBgColor", new Color(1f, 1f, 1f, 0.2f));
+            material.SetColor("_InnerBgColor", new Color(0f, 0f, 0f, 0.65f));
+            material.SetFloat("_AvatarScale", 0.79f);
+            material.SetFloat("_AntiAlias", 0.015f);
+            return material;
         }
 
         private void DrawPreparationGrid()
@@ -795,8 +784,8 @@ namespace Manager
         private sealed class UnitStatusView
         {
             public GameObject root;
-            public Image portrait;
-            public Image hpRing;
+            public RawImage portraitFx;
+            public Material portraitMaterial;
             public Text nameText;
         }
 
