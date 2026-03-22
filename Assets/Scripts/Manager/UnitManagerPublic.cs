@@ -60,6 +60,18 @@ namespace Manager
         }
     }
 
+    public readonly struct DamagePopupRequest
+    {
+        public readonly int TargetUnitId;
+        public readonly float Damage;
+
+        public DamagePopupRequest(int targetUnitId, float damage)
+        {
+            TargetUnitId = targetUnitId;
+            Damage = damage;
+        }
+    }
+
     public partial class UnitManager
     {
         private const int MinTier = 1;
@@ -82,6 +94,7 @@ namespace Manager
         private static bool _awaitingSettlementChoice;
         private static bool _isBattlePreparing;
         private static LevelSpawnPlan _currentPreparingLevelPlan;
+        private static readonly Queue<DamagePopupRequest> _damagePopupRequests = new();
 
         internal static void EnsureInstance()
         {
@@ -128,6 +141,7 @@ namespace Manager
             _isBattlePreparing = false;
             _currentPreparingLevelPlan = null;
             _campaignLevelsByTier.Clear();
+            _damagePopupRequests.Clear();
             BattlePreparationEnded?.Invoke();
 
             NutritionChanged?.Invoke(_nutrition);
@@ -177,6 +191,7 @@ namespace Manager
             _awaitingSettlementChoice = false;
             _isBattlePreparing = false;
             _currentPreparingLevelPlan = null;
+            _damagePopupRequests.Clear();
             BattlePreparationEnded?.Invoke();
         }
 
@@ -252,6 +267,26 @@ namespace Manager
         {
             EnsureInstance();
             return _instance.units;
+        }
+
+        public static void RecordDamagePopup(int targetUnitId, float damage)
+        {
+            EnsureInstance();
+            if (damage <= 0.01f) return;
+            _damagePopupRequests.Enqueue(new DamagePopupRequest(targetUnitId, damage));
+        }
+
+        public static bool TryDequeueDamagePopup(out DamagePopupRequest request)
+        {
+            EnsureInstance();
+            if (_damagePopupRequests.Count > 0)
+            {
+                request = _damagePopupRequests.Dequeue();
+                return true;
+            }
+
+            request = default;
+            return false;
         }
 
         public static int SpawnUnit(UnitRuntimeData data)
@@ -509,6 +544,7 @@ namespace Manager
             EvolutionaryMomentSystem.ExitEvolutionaryMoment();
             EncounterDirector.Reset();
             _elapsedBattleTime = 0f;
+            _damagePopupRequests.Clear();
             BattlePreparationEnded?.Invoke();
 
             var message = isVictory

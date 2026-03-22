@@ -508,6 +508,7 @@ namespace Manager.Evolution
 
                 unit.hp -= damage;
                 unit.lastDamagerUnitId = pair.Value.sourceUnitId;
+                UnitManager.RecordDamagePopup(unit.id, damage);
                 units[index] = unit;
             }
 

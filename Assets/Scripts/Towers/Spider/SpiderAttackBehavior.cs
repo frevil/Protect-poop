@@ -206,6 +206,7 @@ namespace Manager.AttackBehaviors
                 {
                     enemy.hp -= projectile.damage;
                     enemy.lastDamagerUnitId = projectile.attackerUnitId;
+                    UnitManager.RecordDamagePopup(enemy.id, projectile.damage);
                     context.Units[i] = enemy;
                     EvolutionaryMomentSystem.ApplySpiderWebHit(context.Units, i, projectile.attackerUnitId);
                 }

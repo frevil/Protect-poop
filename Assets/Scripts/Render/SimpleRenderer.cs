@@ -9,7 +9,6 @@ namespace Render
     {
         private readonly Dictionary<int, GameObject> _unitsGameObjects = new();
         private readonly Dictionary<int, string> _renderedUnitTypeById = new();
-        private readonly Dictionary<int, float> _lastHpByUnitId = new();
         private readonly Dictionary<string, UnitVisualConfig> _visualConfigByType = new();
         private readonly Dictionary<string, Texture2D> _textureCacheByPath = new();
         private readonly Dictionary<int, Dictionary<string, SkillIconView>> _skillIconsByUnitId = new();
@@ -49,10 +48,9 @@ namespace Render
             }
 
             var deltaTime = Time.deltaTime;
+            ConsumeDamagePopupRequests();
             foreach (var unitRuntimeData in UnitManager.GetUnits())
             {
-                ProcessDamagePopup(unitRuntimeData);
-
                 if (_unitsGameObjects.ContainsKey(unitRuntimeData.id))
                 {
                     _unitsGameObjects.TryGetValue(unitRuntimeData.id, out var unitGo);
@@ -89,22 +87,19 @@ namespace Render
             UpdateDamagePopups(deltaTime);
         }
 
-        private void ProcessDamagePopup(Core.UnitRuntimeData unitRuntimeData)
+        private void ConsumeDamagePopupRequests()
         {
-            var currentHp = Mathf.Max(0f, unitRuntimeData.hp);
-            if (_lastHpByUnitId.TryGetValue(unitRuntimeData.id, out var previousHp))
+            var units = UnitManager.GetUnits();
+            while (UnitManager.TryDequeueDamagePopup(out var request))
             {
-                var damage = previousHp - currentHp;
-                if (damage > 0.01f && unitRuntimeData.alive)
+                for (var i = 0; i < units.Count; i++)
                 {
-                    SpawnDamagePopup(unitRuntimeData, damage);
+                    var unit = units[i];
+                    if (unit.id != request.TargetUnitId) continue;
+                    SpawnDamagePopup(unit, request.Damage);
+                    break;
                 }
-
-                _lastHpByUnitId[unitRuntimeData.id] = currentHp;
-                return;
             }
-
-            _lastHpByUnitId[unitRuntimeData.id] = currentHp;
         }
 
         private void SpawnDamagePopup(Core.UnitRuntimeData unitRuntimeData, float damage)
@@ -518,7 +513,6 @@ namespace Render
             }
 
             _damagePopups.Clear();
-            _lastHpByUnitId.Clear();
         }
 
         private void OnDrawGizmos()
