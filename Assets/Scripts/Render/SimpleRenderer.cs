@@ -9,10 +9,12 @@ namespace Render
     {
         private readonly Dictionary<int, GameObject> _unitsGameObjects = new();
         private readonly Dictionary<int, string> _renderedUnitTypeById = new();
+        private readonly Dictionary<int, float> _lastHpByUnitId = new();
         private readonly Dictionary<string, UnitVisualConfig> _visualConfigByType = new();
         private readonly Dictionary<string, Texture2D> _textureCacheByPath = new();
         private readonly Dictionary<int, Dictionary<string, SkillIconView>> _skillIconsByUnitId = new();
         private readonly List<EvolutionSkillRuntime> _skillRuntimeBuffer = new();
+        private readonly List<DamagePopupView> _damagePopups = new();
 
         private static readonly Dictionary<string, string> SkillIconPathBySkillId = new()
         {
@@ -46,8 +48,11 @@ namespace Render
                 return;
             }
 
+            var deltaTime = Time.deltaTime;
             foreach (var unitRuntimeData in UnitManager.GetUnits())
             {
+                ProcessDamagePopup(unitRuntimeData);
+
                 if (_unitsGameObjects.ContainsKey(unitRuntimeData.id))
                 {
                     _unitsGameObjects.TryGetValue(unitRuntimeData.id, out var unitGo);
@@ -80,6 +85,129 @@ namespace Render
 
                 _unitsGameObjects[unitRuntimeData.id].SetActive(unitRuntimeData.alive);
             }
+
+            UpdateDamagePopups(deltaTime);
+        }
+
+        private void ProcessDamagePopup(Core.UnitRuntimeData unitRuntimeData)
+        {
+            var currentHp = Mathf.Max(0f, unitRuntimeData.hp);
+            if (_lastHpByUnitId.TryGetValue(unitRuntimeData.id, out var previousHp))
+            {
+                var damage = previousHp - currentHp;
+                if (damage > 0.01f && unitRuntimeData.alive)
+                {
+                    SpawnDamagePopup(unitRuntimeData, damage);
+                }
+
+                _lastHpByUnitId[unitRuntimeData.id] = currentHp;
+                return;
+            }
+
+            _lastHpByUnitId[unitRuntimeData.id] = currentHp;
+        }
+
+        private void SpawnDamagePopup(Core.UnitRuntimeData unitRuntimeData, float damage)
+        {
+            var root = new GameObject($"DamagePopup_{unitRuntimeData.id}_{Time.frameCount}");
+            root.transform.SetParent(transform, false);
+            root.transform.position = unitRuntimeData.position + new Vector3(Random.Range(-0.18f, 0.18f), 0.95f, -0.25f);
+
+            var textMesh = root.AddComponent<TextMesh>();
+            textMesh.text = Mathf.CeilToInt(damage).ToString();
+            textMesh.anchor = TextAnchor.MiddleCenter;
+            textMesh.alignment = TextAlignment.Center;
+            textMesh.fontSize = 64;
+            textMesh.characterSize = 0.045f;
+            textMesh.color = new Color(1f, 0.25f, 0.25f, 0f);
+
+            var meshRenderer = root.GetComponent<MeshRenderer>();
+            if (meshRenderer != null)
+            {
+                meshRenderer.sortingOrder = 880;
+                if (meshRenderer.material != null)
+                {
+                    meshRenderer.material = new Material(meshRenderer.material);
+                    meshRenderer.material.color = textMesh.color;
+                }
+            }
+
+            _damagePopups.Add(new DamagePopupView
+            {
+                root = root,
+                textMesh = textMesh,
+                duration = 0.66f,
+                riseSpeed = 0.75f
+            });
+        }
+
+        private void UpdateDamagePopups(float dt)
+        {
+            for (var i = _damagePopups.Count - 1; i >= 0; i--)
+            {
+                var popup = _damagePopups[i];
+                if (popup == null || popup.root == null || popup.textMesh == null)
+                {
+                    _damagePopups.RemoveAt(i);
+                    continue;
+                }
+
+                popup.elapsed += dt;
+                popup.root.transform.position += Vector3.up * popup.riseSpeed * dt;
+
+                var progress = Mathf.Clamp01(popup.elapsed / Mathf.Max(0.01f, popup.duration));
+                var alpha = EvaluatePopupAlpha(progress);
+                var scale = EvaluatePopupScale(progress);
+                popup.root.transform.localScale = Vector3.one * scale;
+
+                var textColor = popup.textMesh.color;
+                textColor.a = alpha;
+                popup.textMesh.color = textColor;
+
+                var renderer = popup.root.GetComponent<MeshRenderer>();
+                if (renderer != null && renderer.material != null)
+                {
+                    var materialColor = renderer.material.color;
+                    materialColor.a = alpha;
+                    renderer.material.color = materialColor;
+                }
+
+                if (popup.elapsed >= popup.duration)
+                {
+                    Destroy(popup.root);
+                    _damagePopups.RemoveAt(i);
+                }
+            }
+        }
+
+        private static float EvaluatePopupAlpha(float progress)
+        {
+            if (progress <= 0.25f)
+            {
+                return Mathf.SmoothStep(0f, 1f, progress / 0.25f);
+            }
+
+            if (progress >= 0.65f)
+            {
+                return Mathf.SmoothStep(1f, 0f, (progress - 0.65f) / 0.35f);
+            }
+
+            return 1f;
+        }
+
+        private static float EvaluatePopupScale(float progress)
+        {
+            if (progress <= 0.25f)
+            {
+                return Mathf.SmoothStep(0.65f, 1.15f, progress / 0.25f);
+            }
+
+            if (progress >= 0.65f)
+            {
+                return Mathf.SmoothStep(1f, 0.78f, (progress - 0.65f) / 0.35f);
+            }
+
+            return Mathf.SmoothStep(1.15f, 1f, (progress - 0.25f) / 0.40f);
         }
 
         private void LoadVisualConfigs()
@@ -380,6 +508,17 @@ namespace Render
                     pair.Value.root.SetActive(false);
                 }
             }
+
+            for (var i = _damagePopups.Count - 1; i >= 0; i--)
+            {
+                if (_damagePopups[i]?.root != null)
+                {
+                    Destroy(_damagePopups[i].root);
+                }
+            }
+
+            _damagePopups.Clear();
+            _lastHpByUnitId.Clear();
         }
 
         private void OnDrawGizmos()
@@ -396,6 +535,15 @@ namespace Render
             public GameObject root;
             public MeshRenderer iconRenderer;
             public LineRenderer ringRenderer;
+        }
+
+        private class DamagePopupView
+        {
+            public GameObject root;
+            public TextMesh textMesh;
+            public float elapsed;
+            public float duration;
+            public float riseSpeed;
         }
     }
 }
