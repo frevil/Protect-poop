@@ -3,7 +3,6 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using Core;
 using Manager.Evolution;
-using Render;
 using Scripts.Core;
 
 namespace Manager
@@ -23,7 +22,7 @@ namespace Manager
         private Text _detailContent;
         private readonly Dictionary<int, UnitStatusView> _statusViewsByUnitId = new();
         private readonly Dictionary<string, Sprite> _portraitSpriteCacheByType = new();
-        private readonly Dictionary<string, UnitVisualConfig> _visualConfigByType = new();
+        private readonly Dictionary<string, PortraitVisualConfig> _visualConfigByType = new();
         private readonly List<EvolutionaryMomentOption> _selectedOptionBuffer = new();
         private readonly List<EvolutionSkillRuntime> _skillRuntimeBuffer = new();
 
@@ -636,7 +635,7 @@ namespace Manager
             var configText = Resources.Load<TextAsset>("Configs/UnitVisualConfigs");
             if (configText == null) return;
 
-            var list = JsonUtility.FromJson<UnitVisualConfigList>(configText.text);
+            var list = JsonUtility.FromJson<PortraitVisualConfigList>(configText.text);
             if (list?.visuals == null) return;
 
             for (var i = 0; i < list.visuals.Count; i++)
@@ -735,6 +734,19 @@ namespace Manager
             public Image portrait;
             public Image hpRing;
             public Text nameText;
+        }
+
+        [System.Serializable]
+        private sealed class PortraitVisualConfigList
+        {
+            public List<PortraitVisualConfig> visuals = new();
+        }
+
+        [System.Serializable]
+        private sealed class PortraitVisualConfig
+        {
+            public string unitType;
+            public string textureResourcePath;
         }
     }
 }
