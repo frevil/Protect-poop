@@ -101,6 +101,7 @@ namespace Manager
             target.hp -= damage;
             target.lastDamagerUnitId = attackerUnitId;
             Debug.Log($"{attackerName}攻击了{target.name},造成了{damage}点伤害");
+            UnitManager.RecordDamagePopup(target.id, damage);
             units[targetIndex] = target;
         }
     }
