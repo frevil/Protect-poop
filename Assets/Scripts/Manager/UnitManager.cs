@@ -53,11 +53,7 @@ namespace Manager
                 float deltaTime = Time.deltaTime;
                 _elapsedBattleTime += deltaTime;
 
-                EncounterDirector.Tick(_elapsedBattleTime);
-                TargetingSystem.UpdateTargets(units);
-                MovementSystem.MoveUnits(units, deltaTime);
-                AttackSystem.HandleAttack(units, deltaTime);
-                DeathSystem.HandleDeath(units);
+                BattleLoopSystem.Tick(units, _elapsedBattleTime, deltaTime);
                 EvaluateGameState();
                 return;
             }
