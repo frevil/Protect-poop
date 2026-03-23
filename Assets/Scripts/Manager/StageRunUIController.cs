@@ -250,7 +250,7 @@ namespace Manager
         {
             _gridColumns = Mathf.Max(1, info.GridColumns);
             _gridRows = Mathf.Max(1, info.GridRows);
-            _preparationText.text = $"战斗准备：拖动伙伴到格子中。当前分割 {_gridColumns} x {_gridRows}";
+            _preparationText.text = $"战斗准备：拖动我方单位到格子中（包含便便）。当前分割 {_gridColumns} x {_gridRows}";
             _preparationPanel.SetActive(true);
             _settlementPanel.SetActive(false);
             GamePauseController.ReleasePause(PauseSource.Settlement);

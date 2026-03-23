@@ -14,7 +14,7 @@ namespace Manager
 
         private static int _prepGridColumns = 15;
         private static int _prepGridRows = 8;
-        private static int _draggingCompanionIndex = -1;
+        private static int _draggingPlayerUnitIndex = -1;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Bootstrap()
@@ -68,25 +68,25 @@ namespace Manager
         {
             if (Input.GetMouseButtonDown(0))
             {
-                _draggingCompanionIndex = FindNearestDraggableCompanionIndex();
+                _draggingPlayerUnitIndex = FindNearestDraggablePlayerUnitIndex();
             }
 
-            if (_draggingCompanionIndex >= 0 && Input.GetMouseButton(0) &&
+            if (_draggingPlayerUnitIndex >= 0 && Input.GetMouseButton(0) &&
                 BattleViewBounds.TryGetMouseWorldPositionOnBattlePlane(out var world))
             {
                 var gridSnapped = SnapWorldToGrid(world, _prepGridColumns, _prepGridRows);
-                var unit = units[_draggingCompanionIndex];
+                var unit = units[_draggingPlayerUnitIndex];
                 unit.position = SpawnPositionResolver.ClampToPlayableArea(gridSnapped);
-                units[_draggingCompanionIndex] = unit;
+                units[_draggingPlayerUnitIndex] = unit;
             }
 
             if (Input.GetMouseButtonUp(0))
             {
-                _draggingCompanionIndex = -1;
+                _draggingPlayerUnitIndex = -1;
             }
         }
 
-        private int FindNearestDraggableCompanionIndex()
+        private int FindNearestDraggablePlayerUnitIndex()
         {
             if (!BattleViewBounds.TryGetMouseWorldPositionOnBattlePlane(out var world))
             {
@@ -98,7 +98,7 @@ namespace Manager
             for (var i = 0; i < units.Count; i++)
             {
                 var unit = units[i];
-                if (!unit.alive || unit.faction != Faction.Player || unit.unitType == "PlayerBase")
+                if (!unit.alive || unit.faction != Faction.Player)
                 {
                     continue;
                 }
@@ -138,12 +138,12 @@ namespace Manager
         {
             _prepGridColumns = Mathf.Max(1, info.GridColumns);
             _prepGridRows = Mathf.Max(1, info.GridRows);
-            _draggingCompanionIndex = -1;
+            _draggingPlayerUnitIndex = -1;
         }
 
         private static void OnBattlePreparationEnded()
         {
-            _draggingCompanionIndex = -1;
+            _draggingPlayerUnitIndex = -1;
         }
 
         private void EvaluateGameState()
