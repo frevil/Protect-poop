@@ -12,11 +12,13 @@ namespace Render
 
         private readonly Dictionary<int, GameObject> _unitsGameObjects = new();
         private readonly Dictionary<int, string> _renderedUnitTypeById = new();
+        private readonly Dictionary<string, Stack<GameObject>> _unitPoolByType = new();
         private readonly Dictionary<string, UnitVisualConfig> _visualConfigByType = new();
         private readonly Dictionary<string, Texture2D> _textureCacheByPath = new();
         private readonly Dictionary<int, Dictionary<string, SkillIconView>> _skillIconsByUnitId = new();
         private readonly List<EvolutionSkillRuntime> _skillRuntimeBuffer = new();
         private readonly List<DamagePopupView> _damagePopups = new();
+        private readonly HashSet<int> _activeUnitIds = new();
 
         private static readonly Dictionary<string, string> SkillIconPathBySkillId = new()
         {
@@ -52,14 +54,16 @@ namespace Render
 
             var deltaTime = Time.deltaTime;
             ConsumeDamagePopupRequests();
+            _activeUnitIds.Clear();
             foreach (var unitRuntimeData in UnitManager.GetUnits())
             {
+                _activeUnitIds.Add(unitRuntimeData.id);
                 if (_unitsGameObjects.ContainsKey(unitRuntimeData.id))
                 {
                     _unitsGameObjects.TryGetValue(unitRuntimeData.id, out var unitGo);
                     if (unitGo == null)
                     {
-                        unitGo = CreateUnitGameObject(unitRuntimeData);
+                        unitGo = AcquireUnitGameObject(unitRuntimeData);
                         _unitsGameObjects[unitRuntimeData.id] = unitGo;
                         _renderedUnitTypeById[unitRuntimeData.id] = unitRuntimeData.unitType;
                     }
@@ -67,8 +71,8 @@ namespace Render
                     if (_renderedUnitTypeById.TryGetValue(unitRuntimeData.id, out var renderedUnitType) &&
                         renderedUnitType != unitRuntimeData.unitType)
                     {
-                        Destroy(unitGo);
-                        unitGo = CreateUnitGameObject(unitRuntimeData);
+                        RecycleUnitGameObject(renderedUnitType, unitGo);
+                        unitGo = AcquireUnitGameObject(unitRuntimeData);
                         _unitsGameObjects[unitRuntimeData.id] = unitGo;
                         _renderedUnitTypeById[unitRuntimeData.id] = unitRuntimeData.unitType;
                     }
@@ -78,7 +82,7 @@ namespace Render
                 }
                 else
                 {
-                    var go = CreateUnitGameObject(unitRuntimeData);
+                    var go = AcquireUnitGameObject(unitRuntimeData);
                     _unitsGameObjects[unitRuntimeData.id] = go;
                     _renderedUnitTypeById[unitRuntimeData.id] = unitRuntimeData.unitType;
                     UpdateSkillIcons(go, unitRuntimeData);
@@ -87,7 +91,83 @@ namespace Render
                 _unitsGameObjects[unitRuntimeData.id].SetActive(unitRuntimeData.alive);
             }
 
+            RecycleMissingUnitGameObjects();
             UpdateDamagePopups(deltaTime);
+        }
+
+        private GameObject AcquireUnitGameObject(Core.UnitRuntimeData unitRuntimeData)
+        {
+            if (_unitPoolByType.TryGetValue(unitRuntimeData.unitType, out var pooledObjects))
+            {
+                while (pooledObjects.Count > 0)
+                {
+                    var pooledGo = pooledObjects.Pop();
+                    if (pooledGo == null) continue;
+                    pooledGo.name = $"{unitRuntimeData.id}_{unitRuntimeData.unitType}";
+                    pooledGo.transform.SetParent(transform, false);
+                    pooledGo.SetActive(true);
+                    UpdatePosition(pooledGo, unitRuntimeData);
+                    return pooledGo;
+                }
+            }
+
+            return CreateUnitGameObject(unitRuntimeData);
+        }
+
+        private void RecycleMissingUnitGameObjects()
+        {
+            var staleIds = new List<int>();
+            foreach (var pair in _unitsGameObjects)
+            {
+                if (_activeUnitIds.Contains(pair.Key)) continue;
+                staleIds.Add(pair.Key);
+            }
+
+            for (var i = 0; i < staleIds.Count; i++)
+            {
+                var staleId = staleIds[i];
+                if (_unitsGameObjects.TryGetValue(staleId, out var staleGo) &&
+                    _renderedUnitTypeById.TryGetValue(staleId, out var staleType))
+                {
+                    RecycleUnitGameObject(staleType, staleGo);
+                }
+
+                ClearSkillIcons(staleId);
+                _unitsGameObjects.Remove(staleId);
+                _renderedUnitTypeById.Remove(staleId);
+            }
+        }
+
+        private void RecycleUnitGameObject(string unitType, GameObject go)
+        {
+            if (go == null) return;
+            if (string.IsNullOrEmpty(unitType))
+            {
+                Destroy(go);
+                return;
+            }
+
+            if (!_unitPoolByType.TryGetValue(unitType, out var pooledObjects))
+            {
+                pooledObjects = new Stack<GameObject>();
+                _unitPoolByType[unitType] = pooledObjects;
+            }
+
+            go.SetActive(false);
+            go.transform.SetParent(transform, false);
+            pooledObjects.Push(go);
+        }
+
+        private void ClearSkillIcons(int unitId)
+        {
+            if (!_skillIconsByUnitId.TryGetValue(unitId, out var viewsBySkillId)) return;
+            foreach (var pair in viewsBySkillId)
+            {
+                if (pair.Value?.root == null) continue;
+                Destroy(pair.Value.root);
+            }
+
+            _skillIconsByUnitId.Remove(unitId);
         }
 
         private void ConsumeDamagePopupRequests()
