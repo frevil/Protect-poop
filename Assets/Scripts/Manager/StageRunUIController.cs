@@ -233,7 +233,7 @@ namespace Manager
         {
             _stageText.text = $"难度{info.Tier} - 关卡 {info.StageInTier}/{info.TotalStageInTier}";
             _settlementPanel.SetActive(false);
-            Time.timeScale = 1f;
+            GamePauseController.ReleasePause(PauseSource.Settlement);
         }
 
         private void HandleStageSettled(StageSettlementInfo info)
@@ -243,7 +243,7 @@ namespace Manager
                                    "现在可选择是否花费3点营养购买新伙伴。";
             _settlementPanel.SetActive(true);
             _preparationPanel.SetActive(false);
-            Time.timeScale = 0f;
+            GamePauseController.RequestPause(PauseSource.Settlement);
         }
 
         private void HandleBattlePreparationStarted(BattlePreparationInfo info)
@@ -253,7 +253,7 @@ namespace Manager
             _preparationText.text = $"战斗准备：拖动伙伴到格子中。当前分割 {_gridColumns} x {_gridRows}";
             _preparationPanel.SetActive(true);
             _settlementPanel.SetActive(false);
-            Time.timeScale = 1f;
+            GamePauseController.ReleasePause(PauseSource.Settlement);
         }
 
         private void HandleBattlePreparationEnded()
@@ -265,7 +265,7 @@ namespace Manager
         {
             _settlementPanel.SetActive(false);
             _preparationPanel.SetActive(false);
-            Time.timeScale = 1f;
+            GamePauseController.ReleasePause(PauseSource.Settlement);
         }
 
         private void TryBuyCompanion(InitialCompanionType companionType)
@@ -278,14 +278,14 @@ namespace Manager
             }
 
             _settlementPanel.SetActive(false);
-            Time.timeScale = 1f;
+            GamePauseController.ReleasePause(PauseSource.Settlement);
         }
 
         private void ContinueWithoutBuying()
         {
             UnitManager.ContinueAfterSettlement();
             _settlementPanel.SetActive(false);
-            Time.timeScale = 1f;
+            GamePauseController.ReleasePause(PauseSource.Settlement);
         }
 
         private void RefreshRunningState()

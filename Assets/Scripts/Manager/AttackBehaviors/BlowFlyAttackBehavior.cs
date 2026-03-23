@@ -69,7 +69,7 @@ namespace Manager.AttackBehaviors
                     egg.hatchTimer += context.Dt;
                     if (egg.hatchTimer >= EggHatchTime)
                     {
-                        HatchFly(egg, context);
+                        HatchFly(egg);
                         egg.phase = EggPhase.Done;
                     }
                 }
@@ -142,13 +142,18 @@ namespace Manager.AttackBehaviors
             }
         }
 
-        private static void HatchFly(EggDropState egg, AttackContext context)
+        private static void HatchFly(EggDropState egg)
         {
-            if (egg.eggUnitId >= 0 && egg.eggUnitId < context.Units.Count)
+            if (egg.eggUnitId > 0 && UnitManager.TryGetUnitById(egg.eggUnitId, out var eggUnit))
             {
-                var eggUnit = context.Units[egg.eggUnitId];
-                eggUnit.alive = false;
-                context.Units[egg.eggUnitId] = eggUnit;
+                var shouldConsumeEgg = eggUnit.alive &&
+                                       eggUnit.unitType == "FlyEgg" &&
+                                       eggUnit.faction == (int)Faction.Enemy;
+                if (shouldConsumeEgg)
+                {
+                    eggUnit.alive = false;
+                    UnitManager.TrySetUnitById(egg.eggUnitId, eggUnit);
+                }
             }
 
             var fly = EnemiesFactor.CreateFly();

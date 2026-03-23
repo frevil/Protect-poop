@@ -89,6 +89,7 @@ namespace Manager
         public static event Action BattlePreparationEnded;
 
         private static int _nutrition;
+        private static int _nextUnitId = 1;
         private static int _currentTier;
         private static int _currentStageIndex;
         private static bool _awaitingSettlementChoice;
@@ -125,7 +126,7 @@ namespace Manager
         public static void PrepareNewGame()
         {
             EnsureInstance();
-            Time.timeScale = 1f;
+            GamePauseController.Reset();
             _isGameRunning = false;
             _instance.units.Clear();
             AttackSystem.ResetState();
@@ -135,6 +136,7 @@ namespace Manager
             LevelSystem.Reset();
 
             _nutrition = 0;
+            _nextUnitId = 1;
             _currentTier = MinTier;
             _currentStageIndex = 0;
             _awaitingSettlementChoice = false;
@@ -181,7 +183,7 @@ namespace Manager
         public static void ShutdownGame()
         {
             EnsureInstance();
-            Time.timeScale = 1f;
+            GamePauseController.Reset();
             _isGameRunning = false;
             _instance.units.Clear();
             AttackSystem.ResetState();
@@ -310,17 +312,8 @@ namespace Manager
             data.position = SpawnPositionResolver.ClampToPlayableArea(data.position);
             EvolutionaryMomentSystem.OnUnitSpawned(ref data);
 
-            var reusableIndex = FindReusableUnitSlot(data);
-            if (reusableIndex >= 0)
-            {
-                data.id = reusableIndex;
-                _instance.units[reusableIndex] = data;
-            }
-            else
-            {
-                data.id = _instance.units.Count;
-                _instance.units.Add(data);
-            }
+            data.id = AllocateUnitId();
+            _instance.units.Add(data);
 
             if (data.faction == Faction.Player && data.unitType != "PlayerBase")
             {
@@ -330,23 +323,41 @@ namespace Manager
             return data.id;
         }
 
-        private static int FindReusableUnitSlot(UnitRuntimeData data)
+        public static bool TryGetUnitIndexById(int unitId, out int index)
         {
-            // 仅复用阵亡敌人的槽位，避免覆盖玩家阵营与永久单位。
-            if (data.faction != Faction.Enemy)
-            {
-                return -1;
-            }
-
+            EnsureInstance();
             for (var i = 0; i < _instance.units.Count; i++)
             {
-                var candidate = _instance.units[i];
-                if (candidate.alive) continue;
-                if (candidate.faction != Faction.Enemy) continue;
-                return i;
+                if (_instance.units[i].id != unitId) continue;
+                index = i;
+                return true;
             }
 
-            return -1;
+            index = -1;
+            return false;
+        }
+
+        public static bool TryGetUnitById(int unitId, out UnitRuntimeData unit)
+        {
+            if (TryGetUnitIndexById(unitId, out var index))
+            {
+                unit = _instance.units[index];
+                return true;
+            }
+
+            unit = UnitRuntimeData.Empty;
+            return false;
+        }
+
+        public static bool TrySetUnitById(int unitId, UnitRuntimeData unit)
+        {
+            if (!TryGetUnitIndexById(unitId, out var index))
+            {
+                return false;
+            }
+
+            _instance.units[index] = unit;
+            return true;
         }
 
         public static void ApplyEvolutionaryMomentOption(EvolutionaryMomentOption option)
@@ -532,11 +543,19 @@ namespace Manager
             }
         }
 
+        private static int AllocateUnitId()
+        {
+            var allocated = _nextUnitId;
+            _nextUnitId += 1;
+            return allocated;
+        }
+
         private static void EndGame(bool isVictory)
         {
             if (!_isGameRunning && !_isBattlePreparing) return;
 
             _isGameRunning = false;
+            GamePauseController.Reset();
             _awaitingSettlementChoice = false;
             _isBattlePreparing = false;
             _currentPreparingLevelPlan = null;

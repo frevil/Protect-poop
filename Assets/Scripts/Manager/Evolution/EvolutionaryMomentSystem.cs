@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Core;
+using Manager;
 using Manager.Evolution.Skills;
 using Scripts.Core;
 using UnityEngine;
@@ -158,7 +159,7 @@ namespace Manager.Evolution
             }
 
             IsInEvolutionaryMoment = true;
-            Time.timeScale = 0f;
+            GamePauseController.RequestPause(PauseSource.EvolutionaryMoment);
             EvolutionaryMomentStarted?.Invoke(CurrentOptions);
         }
 
@@ -196,7 +197,7 @@ namespace Manager.Evolution
             if (!IsInEvolutionaryMoment) return;
 
             IsInEvolutionaryMoment = false;
-            Time.timeScale = 1f;
+            GamePauseController.ReleasePause(PauseSource.EvolutionaryMoment);
             EvolutionaryMomentEnded?.Invoke();
         }
 
