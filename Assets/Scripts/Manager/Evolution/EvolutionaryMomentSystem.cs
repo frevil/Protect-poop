@@ -45,6 +45,7 @@ namespace Manager.Evolution
         private static bool _spiderPoisonSpreadOnDeath;
         private static float _spiderBurstChance;
         private static int _spiderBurstProjectileCount;
+        private static float _spiderComboChance;
         public static bool IsInEvolutionaryMoment { get; private set; }
 
         public static event Action<IReadOnlyList<EvolutionaryMomentOption>> EvolutionaryMomentStarted;
@@ -77,6 +78,7 @@ namespace Manager.Evolution
             _spiderPoisonSpreadOnDeath = false;
             _spiderBurstChance = 0f;
             _spiderBurstProjectileCount = 0;
+            _spiderComboChance = 0f;
             RebuildOptionPool();
 
             ExitEvolutionaryMoment();
@@ -355,6 +357,12 @@ namespace Manager.Evolution
             return Random.value <= _spiderBurstChance ? _spiderBurstProjectileCount : 0;
         }
 
+        public static bool ShouldTriggerSpiderComboAttack()
+        {
+            if (_spiderComboChance <= 0f) return false;
+            return Random.value <= _spiderComboChance;
+        }
+
         public static float GetEffectiveAttackInterval(UnitRuntimeData unit)
         {
             var baseInterval = unit.attackInterval < 0.1f ? 0.1f : unit.attackInterval;
@@ -460,6 +468,7 @@ namespace Manager.Evolution
             _spiderPoisonSpreadOnDeath |= option.poisonSpreadOnDeath;
             if (option.burstChance > 0f) _spiderBurstChance = option.burstChance;
             if (option.burstProjectileCount > 0) _spiderBurstProjectileCount = option.burstProjectileCount;
+            if (option.comboChance > 0f) _spiderComboChance = option.comboChance;
         }
 
         private static int FindUnitIndexById(List<UnitRuntimeData> units, int unitId)
