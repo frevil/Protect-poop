@@ -11,8 +11,10 @@ namespace Manager.AttackBehaviors
         private const float ProjectileHitRadius = 0.35f;
         private const float WebRadius = 2.2f;
         private const float WebExpandDuration = 0.22f;
+        private const float ComboAttackInterval = 0.1f;
 
         private static readonly List<SpiderWebProjectileState> SpiderProjectiles = new();
+        private static readonly Dictionary<int, SpiderComboAttackState> SpiderComboStateByUnitId = new();
 
         public string UnitType => "Spider";
 
@@ -22,9 +24,49 @@ namespace Manager.AttackBehaviors
             if (!target.alive) return;
 
             var inRange = Vector3.Distance(target.position, spider.position) <= spider.attackRange;
-            if (!inRange || spider.attackTimer < EvolutionaryMomentSystem.GetEffectiveAttackInterval(spider)) return;
+            if (!inRange) return;
+
+            if (SpiderComboStateByUnitId.TryGetValue(spider.id, out var comboState))
+            {
+                comboState.timeUntilNextExtraAttack -= context.Dt;
+                if (comboState.timeUntilNextExtraAttack <= 0f)
+                {
+                    SpawnWebVolley(spider, target.position, context);
+                    comboState.remainingExtraAttacks--;
+                    comboState.timeUntilNextExtraAttack = ComboAttackInterval;
+                }
+
+                if (comboState.remainingExtraAttacks > 0)
+                {
+                    SpiderComboStateByUnitId[spider.id] = comboState;
+                }
+                else
+                {
+                    SpiderComboStateByUnitId.Remove(spider.id);
+                }
+
+                return;
+            }
+
+            if (spider.attackTimer < EvolutionaryMomentSystem.GetEffectiveAttackInterval(spider)) return;
+
+            const int maxComboAttacks = 12;
+            var extraAttackCount = 0;
+            while (extraAttackCount < maxComboAttacks && EvolutionaryMomentSystem.ShouldTriggerSpiderComboAttack())
+            {
+                extraAttackCount++;
+            }
 
             SpawnWebVolley(spider, target.position, context);
+
+            if (extraAttackCount > 0)
+            {
+                SpiderComboStateByUnitId[spider.id] = new SpiderComboAttackState
+                {
+                    remainingExtraAttacks = extraAttackCount,
+                    timeUntilNextExtraAttack = ComboAttackInterval
+                };
+            }
 
             spider.attackTimer = 0;
         }
@@ -103,6 +145,7 @@ namespace Manager.AttackBehaviors
             }
 
             SpiderProjectiles.Clear();
+            SpiderComboStateByUnitId.Clear();
         }
 
         private static GameObject CreateProjectileVisual(Transform effectRoot, string texturePath, float size)
@@ -231,6 +274,12 @@ namespace Manager.AttackBehaviors
             public float expandTimer;
             public SpiderProjectilePhase phase;
             public GameObject visual;
+        }
+
+        private struct SpiderComboAttackState
+        {
+            public int remainingExtraAttacks;
+            public float timeUntilNextExtraAttack;
         }
     }
 }

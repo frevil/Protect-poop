@@ -33,6 +33,7 @@ namespace Manager.Evolution
         public bool poisonSpreadOnDeath;
         public float burstChance;
         public int burstProjectileCount;
+        public float comboChance;
 
         // skill config
         public string skillId;

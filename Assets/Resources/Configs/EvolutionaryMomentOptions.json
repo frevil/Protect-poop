@@ -356,6 +356,54 @@
       "unlockedByDefault": false,
       "requiredCompanionUnitType": "",
       "nextOptionIds": []
+    },
+    {
+      "id": "spider_combo_1",
+      "title": "东方明蛛：连击流 I",
+      "description": "每次攻击有20%概率进行一次额外攻击（额外攻击算作一次攻击，能触发攻击相关的效果）",
+      "optionType": "stat_buff",
+      "targetType": "specific_unit_type",
+      "targetUnitType": "Spider",
+      "comboChance": 0.2,
+      "unlockedByDefault": false,
+      "requiredCompanionUnitType": "Spider",
+      "nextOptionIds": ["spider_combo_2"]
+    },
+    {
+      "id": "spider_combo_2",
+      "title": "东方明蛛：连击流 II",
+      "description": "每次攻击有30%概率进行一次额外攻击（额外攻击算作一次攻击，能触发攻击相关的效果）",
+      "optionType": "stat_buff",
+      "targetType": "specific_unit_type",
+      "targetUnitType": "Spider",
+      "comboChance": 0.3,
+      "unlockedByDefault": false,
+      "requiredCompanionUnitType": "",
+      "nextOptionIds": ["spider_combo_3"]
+    },
+    {
+      "id": "spider_combo_3",
+      "title": "东方明蛛：连击流 III",
+      "description": "每次攻击有40%概率进行一次额外攻击（额外攻击算作一次攻击，能触发攻击相关的效果）",
+      "optionType": "stat_buff",
+      "targetType": "specific_unit_type",
+      "targetUnitType": "Spider",
+      "comboChance": 0.4,
+      "unlockedByDefault": false,
+      "requiredCompanionUnitType": "",
+      "nextOptionIds": ["spider_combo_4"]
+    },
+    {
+      "id": "spider_combo_4",
+      "title": "东方明蛛：连击流 IV",
+      "description": "每次攻击有50%概率进行一次额外攻击（额外攻击算作一次攻击，能触发攻击相关的效果）",
+      "optionType": "stat_buff",
+      "targetType": "specific_unit_type",
+      "targetUnitType": "Spider",
+      "comboChance": 0.5,
+      "unlockedByDefault": false,
+      "requiredCompanionUnitType": "",
+      "nextOptionIds": []
     }
   ]
 }
