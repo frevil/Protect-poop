@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Core;
+using Scripts.Core;
 using UnityEngine;
 
 namespace Manager
@@ -47,8 +48,30 @@ namespace Manager
                 float minDist = float.MaxValue;
                 int closest = -1;
 
+                if (unit.unitType == "Sarcophagidae")
+                {
+                    var companionsExist = ExistsAliveCompanionInView(units, viewCenter, viewHalfSize);
+
+                    for (int j = 0; j < units.Count; j++)
+                    {
+                        if (!units[j].alive) continue;
+                        if (!units[j].isTargetable) continue;
+                        if (!IsInView(units[j].position, viewCenter, viewHalfSize)) continue;
+                        if (units[j].faction == unit.faction) continue;
+
+                        var isCompanion = units[j].faction == Faction.Player && units[j].unitType != "PlayerBase";
+                        if (companionsExist && !isCompanion) continue;
+
+                        float dist = (units[j].position - unit.position).sqrMagnitude;
+                        if (dist < minDist)
+                        {
+                            minDist = dist;
+                            closest = j;
+                        }
+                    }
+                }
                 // 丽蝇特殊索敌：优先且固定盯住便便本体。
-                if (unit.unitType == "BlowFly")
+                else if (unit.unitType == "BlowFly")
                 {
                     for (int j = 0; j < units.Count; j++)
                     {
@@ -82,6 +105,22 @@ namespace Manager
                 unit.targetIndex = closest;
                 units[i] = unit;
             }
+        }
+
+        private static bool ExistsAliveCompanionInView(List<UnitRuntimeData> units, Vector2 center, Vector2 halfSize)
+        {
+            for (int i = 0; i < units.Count; i++)
+            {
+                var unit = units[i];
+                if (!unit.alive) continue;
+                if (!unit.isTargetable) continue;
+                if (unit.faction != Faction.Player) continue;
+                if (unit.unitType == "PlayerBase") continue;
+                if (!IsInView(unit.position, center, halfSize)) continue;
+                return true;
+            }
+
+            return false;
         }
 
         private static bool IsInView(Vector3 worldPosition, Vector2 center, Vector2 halfSize)

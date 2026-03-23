@@ -12,7 +12,9 @@ namespace Enemies
                 "Mosquito" => CreateMosquito(),
                 "Fly" => CreateFly(),
                 "BlowFly" => CreateBlowFly(),
+                "Sarcophagidae" => CreateSarcophagidae(),
                 "FlyEgg" => CreateFlyEgg(),
+                "Maggot" => CreateMaggot(),
                 _ => CreateInvalidEnemy(enemyTypeId)
             };
         }
@@ -83,6 +85,28 @@ namespace Enemies
             };
         }
 
+        public static UnitRuntimeData CreateSarcophagidae()
+        {
+            return new UnitRuntimeData
+            {
+                alive = true,
+                isTargetable = true,
+                unitType = "Sarcophagidae",
+                moveSpeed = 1.4f,
+                maxHp = 18,
+                hp = 18,
+                attack = 6,
+                attackRange = 1.15f,
+                attackInterval = 3,
+                attackSpeed = 1,
+                attackIntervalScale = 1,
+                attackTimer = 0,
+                faction = 1,
+                targetIndex = -1,
+                killExp = 4
+            };
+        }
+
         public static UnitRuntimeData CreateFlyEgg()
         {
             return new UnitRuntimeData
@@ -90,6 +114,29 @@ namespace Enemies
                 alive = true,
                 isTargetable = false,
                 unitType = "FlyEgg",
+                moveSpeed = 0,
+                maxHp = 1,
+                hp = 1,
+                attack = 0,
+                attackRange = 0,
+                attackInterval = 0,
+                attackSpeed = 1,
+                attackIntervalScale = 1,
+                attackTimer = 0,
+                faction = 1,
+                targetIndex = -1,
+                killExp = 0,
+                controlState = UnitControlState.Suppressed | UnitControlState.CannotMove
+            };
+        }
+
+        public static UnitRuntimeData CreateMaggot()
+        {
+            return new UnitRuntimeData
+            {
+                alive = true,
+                isTargetable = false,
+                unitType = "Maggot",
                 moveSpeed = 0,
                 maxHp = 1,
                 hp = 1,

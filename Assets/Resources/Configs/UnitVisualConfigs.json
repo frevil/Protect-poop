@@ -55,6 +55,20 @@
       "scale": 0.28,
       "zOffset": 0,
       "sortingOrder": 9
+    },
+    {
+      "unitType": "Sarcophagidae",
+      "textureResourcePath": "UnitVisuals/firefly",
+      "scale": 1.1,
+      "zOffset": 0,
+      "sortingOrder": 10
+    },
+    {
+      "unitType": "Maggot",
+      "textureResourcePath": "UnitVisuals/fly",
+      "scale": 0.35,
+      "zOffset": 0,
+      "sortingOrder": 11
     }
   ]
 }
