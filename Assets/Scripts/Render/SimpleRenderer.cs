@@ -57,6 +57,12 @@ namespace Render
             _activeUnitIds.Clear();
             foreach (var unitRuntimeData in UnitManager.GetUnits())
             {
+                if (!unitRuntimeData.alive)
+                {
+                    RecycleUnitById(unitRuntimeData.id);
+                    continue;
+                }
+
                 _activeUnitIds.Add(unitRuntimeData.id);
                 if (_unitsGameObjects.ContainsKey(unitRuntimeData.id))
                 {
@@ -88,7 +94,7 @@ namespace Render
                     UpdateSkillIcons(go, unitRuntimeData);
                 }
 
-                _unitsGameObjects[unitRuntimeData.id].SetActive(unitRuntimeData.alive);
+                _unitsGameObjects[unitRuntimeData.id].SetActive(true);
             }
 
             RecycleMissingUnitGameObjects();
@@ -125,16 +131,7 @@ namespace Render
 
             for (var i = 0; i < staleIds.Count; i++)
             {
-                var staleId = staleIds[i];
-                if (_unitsGameObjects.TryGetValue(staleId, out var staleGo) &&
-                    _renderedUnitTypeById.TryGetValue(staleId, out var staleType))
-                {
-                    RecycleUnitGameObject(staleType, staleGo);
-                }
-
-                ClearSkillIcons(staleId);
-                _unitsGameObjects.Remove(staleId);
-                _renderedUnitTypeById.Remove(staleId);
+                RecycleUnitById(staleIds[i]);
             }
         }
 
@@ -168,6 +165,19 @@ namespace Render
             }
 
             _skillIconsByUnitId.Remove(unitId);
+        }
+
+        private void RecycleUnitById(int unitId)
+        {
+            if (_unitsGameObjects.TryGetValue(unitId, out var staleGo) &&
+                _renderedUnitTypeById.TryGetValue(unitId, out var staleType))
+            {
+                RecycleUnitGameObject(staleType, staleGo);
+            }
+
+            ClearSkillIcons(unitId);
+            _unitsGameObjects.Remove(unitId);
+            _renderedUnitTypeById.Remove(unitId);
         }
 
         private void ConsumeDamagePopupRequests()
