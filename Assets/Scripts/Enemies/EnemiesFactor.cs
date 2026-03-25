@@ -10,6 +10,7 @@ namespace Enemies
             return enemyTypeId switch
             {
                 "Mosquito" => CreateMosquito(),
+                "VampireMosquito" => CreateVampireMosquito(),
                 "Fly" => CreateFly(),
                 "BlowFly" => CreateBlowFly(),
                 "Sarcophagidae" => CreateSarcophagidae(),
@@ -60,6 +61,28 @@ namespace Enemies
                 faction = 1,
                 targetIndex = -1,
                 killExp = 2
+            };
+        }
+
+        public static UnitRuntimeData CreateVampireMosquito()
+        {
+            return new UnitRuntimeData
+            {
+                alive = true,
+                isTargetable = true,
+                unitType = "VampireMosquito",
+                moveSpeed = 1.1f,
+                maxHp = 20,
+                hp = 20,
+                attack = 3,
+                attackRange = 1.05f,
+                attackInterval = 3.2f,
+                attackSpeed = 1,
+                attackIntervalScale = 1,
+                attackTimer = 0,
+                faction = 1,
+                targetIndex = -1,
+                killExp = 3
             };
         }
 

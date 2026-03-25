@@ -36,6 +36,13 @@
       "sortingOrder": 10
     },
     {
+      "unitType": "VampireMosquito",
+      "textureResourcePath": "UnitVisuals/mosquito",
+      "scale": 1.2,
+      "zOffset": 0,
+      "sortingOrder": 11
+    },
+    {
       "unitType": "PlayerBase",
       "textureResourcePath": "UnitVisuals/shit",
       "scale": 1.2,
